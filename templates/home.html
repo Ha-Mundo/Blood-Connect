@@ -6,13 +6,31 @@
             <body>
                 <div class="container text-center">
                     <div class="jumbotron">
-                        <h2 class="display-4">Home page</h2>
+                        <h2 class="display-4">Blood Donation System</h2>
                     </div>
+
+                    <div class="container">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                  
+                            {% for category, mess in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                              <span>{{ mess }}</span>
+                              <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                    </div>
+                
+                    
                     <a href='/blood_donation'> 
-                        <h3>blood donation</h3>
+                        <h3>Blood donation</h3>
                     </a>
                     <a href='/blood_receive'> 
-                        <h3>blood receive</h3>
+                        <h3>Blood receive</h3>
                     </a>
                 </div>
 

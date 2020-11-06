@@ -14,6 +14,7 @@ from time_limit import threshold_time, timer, donation_day
 file_name = 'BloodDonation.db'
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{file_name}"
+app.config['SECRET_KEY'] = 'mysecretkey'
 db = SQLAlchemy(app)
 
 class BloodDonation(db.Model):
@@ -78,12 +79,12 @@ def blood_donation():
             blood_donation = BloodDonation(**data_dict)
             db.session.add(blood_donation)
             db.session.commit()
-           
+            flash("Thank you!!!", "success")
             return redirect(url_for('home')) 
           
         elif next_bd > 0:
-            query_2 = db.session.query(BloodDonation.next_donation).filter(BloodDonation.phone_no == data_dict['phone_no']).all()
-            next_bd_date = list(query_2[::-1][0])
+            query = db.session.query(BloodDonation.next_donation).filter(BloodDonation.phone_no == data_dict['phone_no']).all()
+            next_bd_date = list(query[::-1][0])
             
             if next_bd_date[0] <= donation_day:   
                 counter += 1
@@ -91,14 +92,17 @@ def blood_donation():
                 blood_donation = BloodDonation(**data_dict)
                 db.session.add(blood_donation)
                 db.session.commit()
-             
+                flash("Thank you!!!", "success")
                 return redirect(url_for('home')) 
             
-            else:    
-                return "Donation forbidden!"
+            else:
+                flash("Donation Forbidden!", "danger")   
+                return redirect(url_for('blood_donation')) 
+          
          
         else:    
-            return "Donation forbidden!!!"
+            flash("Donation Forbidden!!!", "danger")   
+            return redirect(url_for('blood_donation')) 
 
 @app.route('/blood_receive', methods=['GET','POST'])
 def blood_receive():
