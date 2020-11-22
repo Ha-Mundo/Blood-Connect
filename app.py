@@ -1,7 +1,8 @@
 """
 TODO 
-Add flash messagges
-Add receiver table
+add pagination
+update receive-table
+improve ui
 """
 
 from flask import Flask, request, jsonify, render_template, url_for, redirect, flash
@@ -9,9 +10,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, MetaData, func, Column, Date, Integer, Text, asc, desc
 from sqlalchemy.orm import sessionmaker
 import datetime
-from time_limit import threshold_time, timer, donation_day
+from time_limit import threshold_donation, threshold_request, timer, donation_day
 
-file_name = 'BloodDonation.db'
+file_name = 'BloodDonationSystem.db'
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{file_name}"
 app.config['SECRET_KEY'] = 'mysecretkey'
@@ -38,6 +39,27 @@ class BloodDonation(db.Model):
         self.latest_donation = latest_donation
         self.next_donation = next_donation
         self.donation_counter = donation_counter
+        
+class BloodRequest(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String, nullable=False)
+    blood_groups = db.Column(db.String, nullable=False)
+    city = db.Column(db.String, nullable=False)
+    phone_no = db.Column(db.String, nullable=False)
+    latest_request = db.Column(db.Date, nullable=False)
+    next_request = db.Column(db.Date)
+    request_counter = db.Column(db.Integer, default=1)
+
+
+    def __init__(self, name, blood_groups, city, phone_no, latest_request, next_request, request_counter):
+        self.name = name
+        self.blood_groups = blood_groups
+        self.city = city
+        self.phone_no = phone_no
+        self.latest_request = latest_request
+        self.next_request = next_request
+        self.request_counter = request_counter
+
 
 @app.route('/')
 def home():
@@ -54,7 +76,7 @@ def blood_donation():
         return render_template('donate.html', blood_groups = blood_groups)
     else:
         donation_day = datetime.date.today()
-        next_donation_date = threshold_time(donation_day)
+        next_donation_date = threshold_donation(donation_day)
         
         data_fields = ['name','age','blood_groups','city','phone_no']
     
@@ -79,7 +101,7 @@ def blood_donation():
             blood_donation = BloodDonation(**data_dict)
             db.session.add(blood_donation)
             db.session.commit()
-            flash("Thank you!!!", "success")
+            flash(f"Thank you for your availability. We'll get in touch soon!", "success")
             return redirect(url_for('home')) 
           
         elif next_bd > 0:
@@ -92,16 +114,16 @@ def blood_donation():
                 blood_donation = BloodDonation(**data_dict)
                 db.session.add(blood_donation)
                 db.session.commit()
-                flash("Thank you!!!", "success")
+                flash(f"Thank you for your availability. We'll get in touch soon!", "success")
                 return redirect(url_for('home')) 
             
             else:
-                flash("Donation Forbidden!", "danger")   
+                flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")   
                 return redirect(url_for('blood_donation')) 
           
          
         else:    
-            flash("Donation Forbidden!!!", "danger")   
+            flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")   
             return redirect(url_for('blood_donation')) 
 
 @app.route('/blood_receive', methods=['GET','POST'])
@@ -113,17 +135,57 @@ def blood_receive():
             print('Sorry no donations available')
             return render_template('empty_db.html')
 
-
         blood_groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
         return render_template('find_blood.html', blood_groups = blood_groups)
 
     else:
         blood_groups = request.form.get('blood_groups').lower()
         city = request.form.get('city').lower()
-
+        name = request.form.get('name').lower()
+        phone_no = request.form.get('phone_no').lower()
+        
         if city == "":
             return "Please enter all the details." 
-
+        
+        next_request_date = threshold_request(donation_day)
+        receiver_fields = ['blood_groups','city','name','phone_no']
+    
+        request_dict = {}
+        request_dict['latest_request'] = donation_day
+        request_dict['next_request'] = next_request_date
+        
+        for field in receiver_fields:
+            request_dict[field] = request.form.get(field).lower()
+            
+        counter = db.session.query(BloodRequest).filter(BloodRequest.phone_no == request_dict['phone_no']).count() 
+        next_br = db.session.query(BloodRequest).filter(BloodRequest.next_request).count()
+        
+        if counter == 0:
+            counter += 1
+            request_dict['request_counter'] = counter
+            blood_request = BloodRequest(**request_dict)
+            db.session.add(blood_request)
+            db.session.commit()
+           
+        elif next_br > 0:
+            query = db.session.query(BloodRequest.next_request).filter(BloodRequest.phone_no == request_dict['phone_no']).all()
+            next_br_date = list(query[::-1][0])
+            
+            if next_br_date[0] <= donation_day:   
+                counter += 1
+                request_dict['request_counter'] = counter
+                blood_request = BloodRequest(**request_dict)
+                db.session.add(blood_request)
+                db.session.commit()
+                
+            else:
+                flash("Request Forbidden! Is allowed only one blood request per week", "danger")   
+                return redirect(url_for('blood_receive')) 
+            
+        else:
+            flash("Request Forbidden!!! Is allowed only one blood request per week", "danger")   
+            return redirect(url_for('blood_receive'))  
+    
    
         print(city, blood_groups)
         result = BloodDonation.query.\
@@ -136,7 +198,7 @@ def blood_receive():
             return render_template('empty_db.html')
         else:
             return render_template('results.html', blood_donations=result)
-
+        
     print(result)
     return render_template('results.html', blood_donations=result)
 
@@ -147,12 +209,13 @@ def take_donation():
     print(result)
     db.session.delete(result)
     db.session.commit()
+    flash("Thank you for your request! We let you know as soon as possible!", "success")
     return redirect(url_for('home'))
 
 @app.route('/all_donations_db', methods=['GET'] )
 def all_donations_db():
-    all_donations = BloodDonation.query.all()
-    return render_template('results.html', blood_donations=all_donations)
+    all_donations = BloodDonation.query.all()[::-1]
+    return render_template('blood_db.html', blood_donations=all_donations)
 
 if __name__ == '__main__':
     app.run(debug=True)

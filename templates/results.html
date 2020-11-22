@@ -7,6 +7,21 @@
         <h1>Available Blood Donations</h1>
     </div>
 
+    <div class="flash">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, mess in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              <span>{{ mess }}</span>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+    </div>
+
     <table style="width:100%; padding-top: 50px" class=" table  table-striped">
   <tr class="table-primary">
     <th>Name</th>
@@ -19,10 +34,10 @@
   
   {% for blood_donation in blood_donations %}
               <tr>
-                  <td>{{ blood_donation.name }}</td>
+                  <td>{{ blood_donation.name[0]|upper}}{{ blood_donation.name[1:] }}</td>
                   <td>{{ blood_donation.age }} </td>
-                  <td>{{ blood_donation.blood_groups }}</td>
-                  <td>{{ blood_donation.city }}</td>
+                  <td>{{ blood_donation.blood_groups.upper() }}</td>
+                  <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
                   <td>
                       <a href="tel:{{ blood_donation.phone_no }}">
                           {{ blood_donation.phone_no }}
@@ -38,11 +53,11 @@
   {% endfor %}
 
     </table>
-    <div>
-        <a href="/">
-         <h3 class="text-right">Back</h3>
-        </a>
-    </div>    
+    <div class="text-right">
+      <a class = "btn icon-box" href="/">
+        <h3 class="text-right">Back</h3>
+      </a>
+    </div>  
 
 </div>
 {% endblock %}

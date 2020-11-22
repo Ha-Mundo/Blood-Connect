@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container" style='width: 50%; margin: auto;'>
+<div class="container donation-page">
     <div class="jumbotron text-center">
         <h1>Donation Page</h1>
     </div>
 
-    <div class="container">
+    <div class="flash">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
   
@@ -44,10 +44,10 @@
          Phone Number:<br>
         <input type="number" name="phone_no" required>
         <br><br>
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" class="btn btn-primary">
     </form>
-    <div>
-        <a href="/">
+    <div class="text-right">
+        <a class = "btn icon-box" href="/">
          <h3 class="text-right">Back</h3>
         </a>
     </div>     

@@ -13,15 +13,21 @@ threshold = datetime.timedelta(days=1)
 
 #print(donation_day + threshold)
 
-
-def threshold_time(donation_day):
+def threshold_donation(donation_day):
     #donation_day = datetime.datetime.now()
     threshold = datetime.timedelta(days=1)
     till_day =  donation_day + threshold
     #print(till_day)
     return till_day
 
-condition = threshold_time(donation_day)     
+def threshold_request(donation_day):
+    #donation_day = datetime.datetime.now()
+    threshold = datetime.timedelta(days=1)
+    till_day =  donation_day + threshold
+    #print(till_day)
+    return till_day
+
+condition = threshold_donation(donation_day)     
 
 def timer(condition, donation_day):   
     if condition <= donation_day:
