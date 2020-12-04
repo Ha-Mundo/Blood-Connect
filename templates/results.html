@@ -7,6 +7,10 @@
         <h1>Available Blood Donations</h1>
     </div>
 
+    <div>
+      <h2 class="info">Total {{total_result}} donations in {{city[0]|upper}}{{city[1:]}}</h2>
+    </div>
+
     <div class="flash">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -28,7 +32,7 @@
     <th>Age</th> 
     <th>Blood Groups</th>
     <th>City</th>
-    <th>Phone Number</th>
+    <th>Email</th>
     <th>Take</th>
   </tr>
   
@@ -39,8 +43,8 @@
                   <td>{{ blood_donation.blood_groups.upper() }}</td>
                   <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
                   <td>
-                      <a href="tel:{{ blood_donation.phone_no }}">
-                          {{ blood_donation.phone_no }}
+                      <a href="email:{{ blood_donation.email }}">
+                          {{ blood_donation.email }}
                       </a>
                   </td>
                   <td><a href="/take_donation?id={{ blood_donation.id }}">

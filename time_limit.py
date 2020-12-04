@@ -15,14 +15,14 @@ threshold = datetime.timedelta(days=1)
 
 def threshold_donation(donation_day):
     #donation_day = datetime.datetime.now()
-    threshold = datetime.timedelta(days=1)
+    threshold = datetime.timedelta(days=90) #90 Days threshold for blood donation
     till_day =  donation_day + threshold
     #print(till_day)
     return till_day
 
 def threshold_request(donation_day):
     #donation_day = datetime.datetime.now()
-    threshold = datetime.timedelta(days=1)
+    threshold = datetime.timedelta(days=7) #7 Days threshold for blood request 
     till_day =  donation_day + threshold
     #print(till_day)
     return till_day

@@ -11,6 +11,10 @@ flask-sqlalchemy = "*"
 sqlalchemy = "*"
 datetime = "*"
 flash = "*"
+flask-paginate = "*"
+psycopg2 = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.8"

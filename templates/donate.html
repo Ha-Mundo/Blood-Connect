@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container donation-page">
     <div class="jumbotron text-center">
-        <h1>Donation Page</h1>
+        <h1>Blood Donation Page</h1>
     </div>
 
     <div class="flash">
@@ -23,14 +23,14 @@
 
     <form action="/blood_donation" method='POST', class='ui form'>
         <br>
-        Name:<br>
+        Doner Name:<br>
         <input type="text" name="name" required>
         <br>
         Age:<br>
         <input type="number" name="age" required>
        
         <br>
-        blood groups :<br>
+        Blood groups :<br>
         <select name="blood_groups" method="GET" action="/" checked>
             <option value="{{ blood_groups[0]}}" selected>{{ blood_groups[0]}}</option>
             {% for  blood_group in  blood_groups[1:] %}
@@ -41,8 +41,8 @@
          City:<br>
         <input type="text" name="city" required>
         <br>
-         Phone Number:<br>
-        <input type="number" name="phone_no" required>
+         Contact Email:<br>
+        <input type="email" name="email" required>
         <br><br>
         <input type="submit" value="Submit" class="btn btn-primary">
     </form>

@@ -7,6 +7,10 @@
         <h1>Blood Donation Database</h1>
     </div>
 
+    <div >
+        <h2 class="info">Total {{all_donations_counter}} donations </h2>
+    </div>
+
     <table style="width:100%; padding-top: 50px" class=" table  table-striped">
   <tr class="table-primary">
     <th>Name</th>
@@ -14,7 +18,7 @@
     <th>Blood Groups</th>
     <th>City</th>
     <th>Donation Date</th>
-    <th>Phone Number</th>
+    <th>Email</th>
   </tr>
   
   {% for blood_donation in blood_donations %}
@@ -25,8 +29,8 @@
                   <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
                   <td>{{ blood_donation.latest_donation.strftime('%d /%m /%Y') }}</td>
                   <td>
-                      <a href="tel:{{ blood_donation.phone_no }}">
-                          {{ blood_donation.phone_no }}
+                      <a href="email:{{ blood_donation.email }}">
+                          {{ blood_donation.email }}
                       </a>
                   </td>
               </tr>

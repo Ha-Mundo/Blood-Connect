@@ -25,7 +25,7 @@
    /*  margin-bottom: -2rem; */
 }
 
-.icon-box {margin-top: 2rem; background: ButtonFace;}
+.icon-box {margin-top: 2rem; background:gainsboro;}
 .icon-box-a {margin-bottom:.35rem;}
 .icon-box:hover {
     transition: 0.5s;
@@ -40,13 +40,13 @@ a.btn-r:hover { border-radius: .25rem; color:black; }
 .blogofot {
         width :2rem;
         display: inline;
-        /* margin-right: 1rem; */
+        margin-bottom: 0.5rem;
     }
 
 footer {
     position: absolute;
     width: 100%;
-    margin: 2rem 0;
+    margin: 2rem auto;
   }
 
 footer p {display: inline;}
@@ -70,7 +70,23 @@ footer p {display: inline;}
     margin-bottom: 9.45rem; 
 }
 
+.pagination {display:inline-block;}
 
+.pagination-page-info {
+    padding: .6em;
+    padding-left: 0;
+    width: 40em;
+    margin: .5em;
+    margin-left: 0;
+    font-size: 12px;
+}
+.pagination-page-info b {
+    color: black;
+    background: #6aa6ed;
+    padding-left: 2px;
+    padding: .1em .25em;
+    font-size: 150%;
+}
 
 /********** Media Queries **********/
 @media (min-width: 768px) and (max-width: 769px) {.header {font-size: 3rem;}}
@@ -80,10 +96,10 @@ footer p {display: inline;}
     .blogo {
         width: 5.5rem;
         display: inline;
-        margin-right: 0;}
+        margin-left: -2rem;}
 
     .header {
-        font-size: 1.32rem;
+        font-size: 1.5rem;
         display: inline;
         font-weight: 700;
     }
@@ -113,10 +129,13 @@ footer p {display: inline;}
         line-height: 1.13rem;
     }
     
-    footer {position:fixed; bottom: 0; font-size: 1.15rem;}
+    footer {position:initial; bottom: 0; font-size: 1.15rem;}
     }
 
 @media (max-width: 320px) {
+
+    #content {font-size: 0.32rem;}
+    
     .blogo {
         width: 4rem;
         display: inline;
@@ -136,7 +155,7 @@ footer p {display: inline;}
 
     .icon-box-a {margin-top: .5rem; margin-bottom: -.5rem;}
 
-    footer {position:fixed; bottom: 0; font-size: .75rem;}
+    footer {position:initial; bottom: 0; font-size: .75rem;}
   }
 
 @media (min-height: 812px) and (max-height:825px) {
@@ -167,11 +186,11 @@ footer p {display: inline;}
 }
 
 /* @media (min-height: 1366px) and (max-height:1367px) {
-    footer {position:fixed; bottom: 0;}
+    footer {position:initial; bottom: 0;}
 }
 
 @media (min-height: 1024px) and (max-height:1025px) {
-    footer {position:fixed; bottom: 0;}
+    footer {position:initial; bottom: 0;}
 } */
 
 @media (min-height: 1024px) and (max-height:1367px) {
@@ -183,7 +202,7 @@ footer p {display: inline;}
         margin: auto;
         line-height: 3.55rem;}
 
-    footer {position:fixed; bottom: 0; font-size: 1.55rem;}
+    footer {position:initial; bottom: 0; font-size: 1.55rem;}
 }
 
 
