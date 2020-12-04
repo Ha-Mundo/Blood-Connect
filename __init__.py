@@ -18,6 +18,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 app.config['SECRET_KEY'] = 'mysecretkey'
 db = SQLAlchemy(app)
 
+def getApp():
+    return app
+
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(20), nullable=False)
