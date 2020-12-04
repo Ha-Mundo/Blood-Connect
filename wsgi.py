@@ -1,2 +1,2 @@
-from BloodDonationSystem import __init__
+from __init__ import getApp
 app = getApp()
