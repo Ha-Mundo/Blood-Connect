@@ -1,2 +1,2 @@
-from BloodDonationSystem import getApp time_limit 
+from BloodDonationSystem import getApp 
 app = getApp()
