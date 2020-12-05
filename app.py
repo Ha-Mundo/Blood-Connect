@@ -18,8 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 app.config['SECRET_KEY'] = 'mysecretkey'
 db = SQLAlchemy(app)
 
-def getApp():
-    return app
+
 
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -228,4 +227,5 @@ def all_donations_db():
     return render_template('blood_db.html', blood_donations=all_donations, all_donations_counter = all_donations_counter)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.run(debug=False)
