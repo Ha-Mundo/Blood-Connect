@@ -10,30 +10,34 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import datetime
 from time_limit import threshold_donation, threshold_request
+from flask_wtf.csrf import CSRFProtect
 
-# Caricamento variabili d'ambiente
+# Initialize protection against Cross-Site Request Forgery attacks
+csrf = CSRFProtect(app)
+
+# Loading environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Se la variabile d'ambiente non esiste, usiamo un fallback (solo per dev!)
+# If the environment variable doesn't exist, we use a fallback (dev only!)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-dev-key-molto-insicura')
 
-# Puntiamo correttamente alla cartella 'instance'
+# We correctly point to the 'instance' folder
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'instance', 'BloodDonationSystem.db')
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
+    
 class BloodDonation(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(20), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
     age = db.Column(db.Integer, nullable=False)
-    blood_groups = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(60), nullable=False)
+    blood_groups = db.Column(db.String(5), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     latest_donation = db.Column(db.Date, nullable=False)
     next_donation = db.Column(db.Date)
     donation_counter = db.Column(db.Integer, default=1)
@@ -51,10 +55,10 @@ class BloodDonation(db.Model):
         
 class BloodRequest(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(20), nullable=False)
-    blood_groups = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(60), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    blood_groups = db.Column(db.String(5), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     latest_request = db.Column(db.Date, nullable=False)
     next_request = db.Column(db.Date)
     request_counter = db.Column(db.Integer, default=1)
