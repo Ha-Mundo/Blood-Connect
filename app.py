@@ -4,21 +4,28 @@ add pagination
 improve ui
 """
 
+import os
 from flask import Flask, request, jsonify, render_template, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine, MetaData, func, Column, Date, Integer, Text, asc, desc
-from sqlalchemy.orm import sessionmaker
-from time_limit import threshold_donation, threshold_request, timer, donation_day
+from dotenv import load_dotenv
 import datetime
+from time_limit import threshold_donation, threshold_request
 
-file_name = 'BloodDonationSystem.db'
+# Caricamento variabili d'ambiente
+load_dotenv()
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{file_name}"
-app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
-app.config['SECRET_KEY'] = 'mysecretkey'
+
+# Se la variabile d'ambiente non esiste, usiamo un fallback (solo per dev!)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-dev-key-molto-insicura')
+
+# Puntiamo correttamente alla cartella 'instance'
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'instance', 'BloodDonationSystem.db')
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
-
-
 
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key = True)
