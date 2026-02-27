@@ -278,11 +278,17 @@ def take_donation():
     
     return redirect(url_for('home'))
 
-@app.route('/all_donations_db', methods=['GET'] )
+@app.route('/all_donations_db', methods=['GET'])
+@login_required # Only a logged admin can see this page
 def all_donations_db():
+    """
+    Administrative view. Only accessible by authorized super-users.
+    """
     all_donations = BloodDonation.query.all()[::-1]
     all_donations_counter = BloodDonation.query.count()
-    return render_template('blood_db.html', blood_donations=all_donations, all_donations_counter = all_donations_counter)
+    return render_template('blood_db.html', 
+                           blood_donations=all_donations, 
+                           all_donations_counter=all_donations_counter)
 
 if __name__ == '__main__':
     #app.run(debug=True)
