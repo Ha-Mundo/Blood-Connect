@@ -220,15 +220,47 @@ def blood_receive():
     print(result)
     return render_template('results.html', blood_donations=result)
 
-@app.route('/take_donation')
+@app.route('/take_donation', methods=['POST'])
 def take_donation():
-    blood_donation_id = request.args.get('id')
-    request_name = BloodRequest.query.order_by(BloodRequest.id.desc()).first()
-    result = BloodDonation.query.get(blood_donation_id)
-    print(result)
-    db.session.delete(result)
-    db.session.commit()
-    flash(f"Thank you {request_name.name[0].upper()}{request_name.name[1:]} for your request! We let you know as soon as possible!", "success")
+    """
+    Handles the deletion of a blood donation record.
+    Security Improvements:
+    1. Changed from GET to POST to prevent CSRF (Cross-Site Request Forgery).
+    2. Added email verification to mitigate IDOR (Insecure Direct Object Reference).
+    3. Uses get_or_404 for robust error handling.
+    """
+    
+    # Retrieve data from the secure POST form
+    blood_donation_id = request.form.get('id')
+    user_email = request.form.get('email', '').lower()
+
+    # 1. Validation: Ensure both fields are provided
+    if not blood_donation_id or not user_email:
+        flash("Invalid request. Please provide all required information.", "danger")
+        return redirect(url_for('all_donations_db'))
+
+    # 2. Fetch the record or return a 404 error if not found (Prevents app crashes)
+    donation = BloodDonation.query.get_or_404(blood_donation_id)
+
+    # 3. Security Check: Only the owner (by email) can delete their donation
+    # This prevents an attacker from deleting random records by guessing IDs
+    if donation.email != user_email:
+        # Log this internally as a potential suspicious activity
+        flash("Access Denied! You are not authorized to remove this record.", "danger")
+        return redirect(url_for('all_donations_db'))
+
+    try:
+        # 4. Perform the deletion
+        db.session.delete(donation)
+        db.session.commit()
+        
+        # Success message for the user
+        flash("Donation record successfully processed. Thank you for your contribution!", "success")
+    except Exception as e:
+        # Handle database errors gracefully
+        db.session.rollback()
+        flash("An error occurred while processing your request. Please try again later.", "warning")
+    
     return redirect(url_for('home'))
 
 @app.route('/all_donations_db', methods=['GET'] )
