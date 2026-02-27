@@ -87,7 +87,36 @@ class BloodRequest(db.Model):
         self.latest_request = latest_request
         self.next_request = next_request
         self.request_counter = request_counter
+        
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Secure login route for administrators.
+    Uses Bcrypt for hash verification to prevent credential exposure.
+    """
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        
+        # Security: Verify user exists and check password hash
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            flash("Login successful! Welcome back, Admin.", "success")
+            return redirect(url_for('all_donations_db'))
+        else:
+            # Security Tip: Use a generic error message to prevent 'Username Enumeration'
+            flash("Login failed. Check your credentials and try again.", "danger")
+            
+    return render_template('login.html')
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out safely.", "info")
+    return redirect(url_for('home'))
 
 @app.route('/')
 def home():
