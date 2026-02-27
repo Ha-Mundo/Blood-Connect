@@ -1,4 +1,3 @@
-# create_admin.py
 from app import app, db, User, bcrypt
 import getpass
 
