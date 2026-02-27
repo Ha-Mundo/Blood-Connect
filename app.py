@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 import datetime
 from time_limit import threshold_donation, threshold_request
 from flask_wtf.csrf import CSRFProtect
+from flask_login import UserMixin
+from flask_bcrypt import Bcrypt
 
 # Initialize protection against Cross-Site Request Forgery attacks
 csrf = CSRFProtect(app)
@@ -30,6 +32,13 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+bcrypt = Bcrypt(app)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False) # Will store the hashed password
     
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
