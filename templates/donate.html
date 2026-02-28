@@ -3,16 +3,16 @@
 <div class="container donation-page">
     <div class="jumbotron text-center">
         <h1>Blood Donation Page</h1>
+        <p class="text-muted">Join our community and save lives.</p>
     </div>
 
     <div class="flash">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-  
             {% for category, mess in messages %}
             <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              <span>{{ mess }}</span>
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+              <strong>{{ category|capitalize }}:</strong> {{ mess }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -21,35 +21,44 @@
         {% endwith %}
     </div>
 
-    <form action="/blood_donation" method='POST', class='ui form'>
-        <br>
-        Doner Name:<br>
-        <input type="text" name="name" required>
-        <br>
-        Age:<br>
-        <input type="number" name="age" required>
-       
-        <br>
-        Blood groups :<br>
-        <select name="blood_groups" method="GET" action="/" checked>
-            <option value="{{ blood_groups[0]}}" selected>{{ blood_groups[0]}}</option>
-            {% for  blood_group in  blood_groups[1:] %}
-            <option value="{{ blood_group}}">{{ blood_group}}</option>
-            {% endfor %}
-        </select>
-        <br>
-         City:<br>
-        <input type="text" name="city" required>
-        <br>
-         Contact Email:<br>
-        <input type="email" name="email" required>
-        <br><br>
-        <input type="submit" value="Submit" class="btn btn-primary">
+    <form action="{{ url_for('blood_donation') }}" method="POST" class="ui form mt-4">
+        {{ form.csrf_token }} <div class="form-group">
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control", placeholder="Enter full name") }}
+            {% if form.name.errors %}
+                {% for error in form.name.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.age.label }}<br>
+            {{ form.age(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.blood_groups.label }}<br>
+            {{ form.blood_groups(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.city.label }}<br>
+            {{ form.city(class="form-control", placeholder="Your city") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.email.label }}<br>
+            {{ form.email(class="form-control", placeholder="name@example.com") }}
+        </div>
+
+        <div class="mt-4">
+            {{ form.submit(class="btn btn-primary btn-block") }}
+        </div>
     </form>
-    <div class="text-right">
-        <a class = "btn icon-box" href="/">
-         <h3 class="text-right">Back</h3>
-        </a>
+
+    <div class="text-right mt-3">
+        <a class="btn btn-outline-secondary" href="/">Back</a>
     </div>     
 </div>
 {% endblock %}
