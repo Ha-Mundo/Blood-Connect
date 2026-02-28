@@ -8,6 +8,11 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     submit = SubmitField('Sign Up')
 
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+    
 class DonationForm(FlaskForm):
     # Field for Name with length validation to prevent Buffer Overflow attempts
     name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=50)])
