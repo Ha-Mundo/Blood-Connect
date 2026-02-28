@@ -2,7 +2,8 @@
 {% block content %}
 <div class="container request-page">
     <div class="jumbotron text-center">
-        <h1>Blood Receiver Page</h1>
+        <h1>Find Blood Donors</h1>
+        <p class="text-danger">Requests are limited to once per week per email.</p>
     </div>
 
     <div class="flash">
@@ -10,8 +11,8 @@
           {% if messages %}
             {% for category, mess in messages %}
             <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              <span>{{ mess }}</span>
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+              {{ mess }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -20,37 +21,36 @@
         {% endwith %}
     </div>
 
-    <div class="text-right">
-      <a class= "btn icon-box" href="/all_donations_db">
-          <h3 >Check database</h3>
-      </a>
-    </div>
-      
-    <form action="/blood_receive" method='POST', class='ui form' >
-        <br>
-        Receiver Name:<br>
-        <input type="text" name="name" required>
-        <br>
-        Blood groups :<br>
-        <select name="blood_groups" method="GET" action="/" checked>
-            <option value="{{ blood_groups[0]}}" selected>{{ blood_groups[0]}}</option>
-            {% for  blood_group in  blood_groups[1:] %}
-            <option value="{{ blood_group}}">{{ blood_group}}</option>
-            {% endfor %}
-        </select>
-        <br>
-        City:<br>
-        <input type="text" name="city" required>
-        <br>
-        Contact Email:<br>
-        <input type="email" name="email" required>
-        <br><br>
-        <input type="submit" value="Search" class="btn btn-primary">
+    <form action="{{ url_for('blood_receive') }}" method="POST" class="ui form mt-4">
+        {{ form.csrf_token }}
+
+        <div class="form-group">
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.blood_groups.label }}<br>
+            {{ form.blood_groups(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.city.label }}<br>
+            {{ form.city(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.email.label }}<br>
+            {{ form.email(class="form-control") }}
+        </div>
+
+        <div class="mt-4">
+            {{ form.submit(class="btn btn-primary btn-block") }}
+        </div>
     </form>
-    <div class="text-right">
-      <a class = "btn icon-box icon-box-a" href="/">
-        <h3 class="text-right">Back</h3>
-      </a>
+
+    <div class="text-right mt-3">
+        <a class="btn btn-outline-secondary" href="/">Back</a>
     </div> 
 </div>
 {% endblock %}
