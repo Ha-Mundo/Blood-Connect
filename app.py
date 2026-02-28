@@ -14,6 +14,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_login import UserMixin
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from forms import DonationForm
 
 # Loading environment variables
 load_dotenv()
@@ -126,62 +127,58 @@ def home():
 def no_donations():
     return render_template('empty_db.html')
 
-@app.route('/blood_donation', methods=['GET','POST'])
+@app.route('/blood_donation', methods=['GET', 'POST'])
 def blood_donation():
-    if request.method == 'GET':
-        blood_groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-        return render_template('donate.html', blood_groups = blood_groups)
-    else:
-        donation_day = datetime.date.today()
-        next_donation_date = threshold_donation(donation_day)
+    """
+    Handles new blood donation submissions.
+    Security: Automatic CSRF protection and Server-Side validation via Flask-WTF.
+    """
+    form = DonationForm()
+    
+    # validate_on_submit() checks if the request is POST AND if the CSRF token is valid
+    if form.validate_on_submit():
+        # Get cleaned and validated data from the form
+        email = form.email.data.lower()
         
-        data_fields = ['name','age','blood_groups','city','email']
-    
-        data_dict = {}
-        data_dict['latest_donation'] = donation_day
-        data_dict['next_donation'] = next_donation_date
-                      
-    
-        for field in data_fields:
-            data_dict[field] = request.form.get(field).lower()
+        # Check if the donor already exists to verify the 3-month threshold
+        existing_donor = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
+        today = datetime.date.today()
 
-        for value in data_dict.values():
-            if value == "":
-                return "Please enter all the details." 
-                  
-        counter = db.session.query(BloodDonation).filter(BloodDonation.email == data_dict['email']).count() 
-        next_bd = db.session.query(BloodDonation).filter(BloodDonation.next_donation).count() 
-                
-        if counter == 0:
-            counter += 1
-            data_dict['donation_counter'] = counter
-            blood_donation = BloodDonation(**data_dict)
-            db.session.add(blood_donation)
+        if existing_donor:
+            # Check if the 'next_donation' date has passed
+            if existing_donor.next_donation > today:
+                flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")
+                return redirect(url_for('blood_donation'))
+            
+            # Increment counter for returning donors
+            counter = existing_donor.donation_counter + 1
+        else:
+            counter = 1
+
+        # Create new record using validated data
+        new_donation = BloodDonation(
+            name=form.name.data.lower(),
+            age=form.age.data,
+            blood_groups=form.blood_groups.data.lower(),
+            city=form.city.data.lower(),
+            email=email,
+            latest_donation=today,
+            next_donation=threshold_donation(today),
+            donation_counter=counter
+        )
+
+        try:
+            db.session.add(new_donation)
             db.session.commit()
-            flash(f"Thank you {blood_donation.name[0].upper()}{blood_donation.name[1:]} for your availability. We'll get in touch soon!", "success")
-            return redirect(url_for('home')) 
-          
-        elif next_bd > 0:
-            query = db.session.query(BloodDonation.next_donation).filter(BloodDonation.email == data_dict['email']).all()
-            next_bd_date = list(query[::-1][0])
-            
-            if next_bd_date[0] <= donation_day:   
-                counter += 1
-                data_dict['donation_counter'] = counter
-                blood_donation = BloodDonation(**data_dict)
-                db.session.add(blood_donation)
-                db.session.commit()
-                flash(f"Thank you {blood_donation.name[0].upper()}{blood_donation.name[1:]} for your availability. We'll get in touch soon!", "success")
-                return redirect(url_for('home')) 
-            
-            else:
-                flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")   
-                return redirect(url_for('blood_donation')) 
-          
-         
-        else:    
-            flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")   
-            return redirect(url_for('blood_donation')) 
+            flash(f"Thank you {form.name.data.capitalize()} for your availability. We'll get in touch soon!", "success")
+            return redirect(url_for('home'))
+        except Exception as e:
+            db.session.rollback()
+            flash("A database error occurred. Please try again later.", "warning")
+            return redirect(url_for('blood_donation'))
+
+    # If it's a GET request or form validation fails
+    return render_template('donate.html', form=form)
 
 @app.route('/blood_receive', methods=['GET','POST'])
 def blood_receive():
