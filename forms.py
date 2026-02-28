@@ -1,6 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, SubmitField
+from wtforms import StringField, IntegerField, SelectField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email, NumberRange, Length
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    submit = SubmitField('Sign Up')
 
 class DonationForm(FlaskForm):
     # Field for Name with length validation to prevent Buffer Overflow attempts
