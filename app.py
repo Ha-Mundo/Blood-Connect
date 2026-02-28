@@ -1,6 +1,6 @@
 import os
 import datetime
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
@@ -32,7 +32,9 @@ login_manager.login_message_category = 'info'
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False) 
     password = db.Column(db.String(60), nullable=False)
+    role = db.Column(db.String(10), default='user') # 'admin' or 'user'
 
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -109,6 +111,8 @@ def login():
 @app.route("/all_donations_db")
 @login_required
 def all_donations_db():
+    if current_user.role != 'admin':
+        abort(403) # Forbidden: The user logged in does not have permissions
     donations = BloodDonation.query.all()[::-1]
     count = BloodDonation.query.count()
     return render_template('blood_db.html', blood_donations=donations, all_donations_counter=count)
@@ -127,6 +131,19 @@ def take_donation():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+@app.cli.command("create-admin")
+def create_admin():
+    """Custom command to create an admin user from terminal."""
+    username = input("Enter admin username: ")
+    password = input("Enter admin password: ")
+    
+    hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+    admin = User(username=username, password=hashed_pw)
+    # is_admin=True 
+    db.session.add(admin)
+    db.session.commit()
+    print(f"Admin {username} created successfully!")
 
 if __name__ == '__main__':
     with app.app_context():
