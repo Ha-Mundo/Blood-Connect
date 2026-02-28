@@ -14,7 +14,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_login import UserMixin
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
-from forms import DonationForm
+from forms import DonationForm, RequestForm
 
 # Loading environment variables
 load_dotenv()
@@ -180,86 +180,52 @@ def blood_donation():
     # If it's a GET request or form validation fails
     return render_template('donate.html', form=form)
 
-@app.route('/blood_receive', methods=['GET','POST'])
+
+@app.route('/blood_receive', methods=['GET', 'POST'])
 def blood_receive():
-    if request.method == 'GET':
-
-        all_donations = BloodDonation.query.all()
-        if all_donations == []:
-            print('Sorry no donations available')
-            return render_template('empty_db.html')
-
-        blood_groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-        return render_template('find_blood.html', blood_groups = blood_groups)
-
-    else:
-        blood_groups = request.form.get('blood_groups').lower()
-        city = request.form.get('city').lower()
-        name = request.form.get('name').lower()
-        email = request.form.get('email').lower()
-        
-        if city == "":
-            return "Please enter all the details." 
-        
-        next_request_date = threshold_request(donation_day)
-        receiver_fields = ['blood_groups','city','name','email']
+    form = RequestForm()
     
-        request_dict = {}
-        request_dict['latest_request'] = donation_day
-        request_dict['next_request'] = next_request_date
+    if form.validate_on_submit():
+        email = form.email.data.lower()
+        today = datetime.date.today()
         
-        for field in receiver_fields:
-            request_dict[field] = request.form.get(field).lower()
-            
-        counter = db.session.query(BloodRequest).filter(BloodRequest.email == request_dict['email']).count() 
-        next_br = db.session.query(BloodRequest).filter(BloodRequest.next_request).count()
+        # 1. Threshold Security Check: Prevent spam (1 request per week)
+        existing_request = BloodRequest.query.filter_by(email=email).order_by(BloodRequest.id.desc()).first()
         
-        if counter == 0:
-            counter += 1
-            request_dict['request_counter'] = counter
-            blood_request = BloodRequest(**request_dict)
-            db.session.add(blood_request)
-            db.session.commit()
-           
-        elif next_br > 0:
-            query = db.session.query(BloodRequest.next_request).filter(BloodRequest.email == request_dict['email']).all()
-            next_br_date = list(query[::-1][0])
-            
-            if next_br_date[0] <= donation_day:   
-                counter += 1
-                request_dict['request_counter'] = counter
-                blood_request = BloodRequest(**request_dict)
-                db.session.add(blood_request)
-                db.session.commit()
-                
-            else:
-                flash("Request Forbidden! Is allowed only one blood request per week", "danger")   
-                return redirect(url_for('blood_receive')) 
-            
-        else:
-            flash("Request Forbidden!!! Is allowed only one blood request per week", "danger")   
-            return redirect(url_for('blood_receive'))  
-    
-   
-        print(city, blood_groups)
-        result = BloodDonation.query\
-            .filter_by(blood_groups = blood_groups)\
-            .filter_by(city = city)\
-            .all()
-                
-        total_result = BloodDonation.query\
-            .filter_by(blood_groups = blood_groups)\
-            .filter_by(city = city)\
-            .count()
+        if existing_request and existing_request.next_request > today:
+            flash("Request Forbidden! Only one blood request per week is allowed.", "danger")
+            return redirect(url_for('blood_receive'))
+
+        # 2. Register the search request (Auditing/Logging)
+        new_request = BloodRequest(
+            name=form.name.data.lower(),
+            blood_groups=form.blood_groups.data.lower(),
+            city=form.city.data.lower(),
+            email=email,
+            latest_request=today,
+            next_request=threshold_request(today),
+            request_counter=(existing_request.request_counter + 1 if existing_request else 1)
+        )
         
-        if result == []:
-            print('Sorry no donations available')
+        db.session.add(new_request)
+        db.session.commit()
+
+        # 3. Secure Search (SQL Injection Protected by SQLAlchemy)
+        results = BloodDonation.query.filter_by(
+            blood_groups=form.blood_groups.data.lower(),
+            city=form.city.data.lower()
+        ).all()
+        
+        if not results:
             return render_template('empty_db.html')
-        else:
-            return render_template('results.html', blood_donations=result, city=city, total_result = total_result)
-        
-    print(result)
-    return render_template('results.html', blood_donations=result)
+            
+        return render_template('results.html', 
+                               blood_donations=results, 
+                               city=form.city.data, 
+                               total_result=len(results))
+
+    # GET request: Show empty form
+    return render_template('find_blood.html', form=form)
 
 @app.route('/take_donation', methods=['POST'])
 def take_donation():
