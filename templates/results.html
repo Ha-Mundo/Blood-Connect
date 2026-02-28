@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-
 <div class="container text-center">
     <div class="jumbotron">
         <h1>Available Blood Donations</h1>
     </div>
 
     <div>
-      <h2 class="info">Total {{total_result}} donations in {{city[0]|upper}}{{city[1:]}}</h2>
+        <h2 class="info">Found {{ total_result }} potential matches in {{ city|capitalize }}</h2>
     </div>
 
     <div class="flash">
@@ -16,8 +15,8 @@
           {% if messages %}
             {% for category, mess in messages %}
             <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              <span>{{ mess }}</span>
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+              {{ mess }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -26,41 +25,45 @@
         {% endwith %}
     </div>
 
-    <table style="width:100%; padding-top: 50px" class=" table  table-striped">
-  <tr class="table-primary">
-    <th>Name</th>
-    <th>Age</th> 
-    <th>Blood Groups</th>
-    <th>City</th>
-    <th>Email</th>
-    <th>Take</th>
-  </tr>
-  
-  {% for blood_donation in blood_donations %}
-              <tr>
-                  <td>{{ blood_donation.name[0]|upper}}{{ blood_donation.name[1:] }}</td>
-                  <td>{{ blood_donation.age }} </td>
-                  <td>{{ blood_donation.blood_groups.upper() }}</td>
-                  <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
-                  <td>
-                      <a href="email:{{ blood_donation.email }}">
-                          {{ blood_donation.email }}
-                      </a>
-                  </td>
-                  <td><a href="/take_donation?id={{ blood_donation.id }}">
-                          <button class="ui button">
-                              Take 
-                          </button>
-                      </a>
-                  </td>
-              </tr>
-  {% endfor %}
-
+    <table class="table table-striped mt-5">
+        <thead class="table-primary">
+            <tr>
+                <th>Donor (Initials)</th>
+                <th>Age</th> 
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for blood_donation in blood_donations %}
+            <tr>
+                <td>{{ blood_donation.name[0]|upper }}. ***</td>
+                <td>{{ blood_donation.age }}</td>
+                <td>{{ blood_donation.blood_groups.upper() }}</td>
+                <td>{{ blood_donation.city|capitalize }}</td>
+                <td><span class="badge badge-success">Available</span></td>
+                <td>
+                    <form action="{{ url_for('take_donation') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="id" value="{{ blood_donation.id }}">
+                        
+                        <div class="input-group input-group-sm">
+                            <input type="email" name="email" class="form-control" placeholder="Confirm your email" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary btn-sm">Request</button>
+                            </div>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-    <div class="text-right">
-      <a class = "btn icon-box" href="/">
-        <h3 class="text-right">Back</h3>
-      </a>
+
+    <div class="text-right mt-4">
+        <a class="btn btn-outline-secondary" href="/">Back to Search</a>
     </div>  
 
 </div>
