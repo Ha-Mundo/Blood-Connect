@@ -1,41 +1,24 @@
 import datetime
 
+def threshold_donation(base_date):
+    """
+    Calculates the date when a donor is eligible to donate again.
+    Standard safety interval: 90 days.
+    """
+    threshold = datetime.timedelta(days=90)
+    return base_date + threshold
 
-#print(datetime.now())
+def threshold_request(base_date):
+    """
+    Calculates the date when a user can make a new blood request.
+    Anti-spam interval: 7 days.
+    """
+    threshold = datetime.timedelta(days=7)
+    return base_date + threshold
 
-donation_day = datetime.date.today()
-
-#print(donation_day)
-
-threshold = datetime.timedelta(days=1)
-
-#print(threshold.days)
-
-#print(donation_day + threshold)
-
-def threshold_donation(donation_day):
-    #donation_day = datetime.datetime.now()
-    threshold = datetime.timedelta(days=90) #90 Days threshold for blood donation
-    till_day =  donation_day + threshold
-    #print(till_day)
-    return till_day
-
-def threshold_request(donation_day):
-    #donation_day = datetime.datetime.now()
-    threshold = datetime.timedelta(days=7) #7 Days threshold for blood request 
-    till_day =  donation_day + threshold
-    #print(till_day)
-    return till_day
-
-condition = threshold_donation(donation_day)     
-
-def timer(condition, donation_day):   
-    if condition <= donation_day:
-       return True
-    else:
-        return False
-
-#t = timer(condition, donation_day)
-#print(t)
-
-
+def is_action_allowed(next_allowed_date, current_date):
+    """
+    Checks if the required time interval has passed.
+    Returns True if the action is allowed, False otherwise.
+    """
+    return current_date >= next_allowed_date
