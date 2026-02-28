@@ -6,6 +6,9 @@
         <h2 class="display-4 header">Blood Donation System</h2>
         {% if current_user.is_authenticated %}
             <p>Welcome back, <strong>{{ current_user.username }}</strong>!</p>
+            <div class="mb-4">
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">Logout</a>
+            </div>
         {% endif %}
     </div>
 
