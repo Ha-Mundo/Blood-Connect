@@ -1,52 +1,39 @@
-"""
-TODO 
-add pagination
-improve ui
-"""
-
 import os
-from flask import Flask, request, jsonify, render_template, url_for, redirect, flash
-from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
 import datetime
-from time_limit import threshold_donation, threshold_request
-from flask_wtf.csrf import CSRFProtect
-from flask_login import UserMixin
+from flask import Flask, render_template, redirect, url_for, flash, request
+from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
+from flask_wtf.csrf import CSRFProtect
+from dotenv import load_dotenv
+
+# Local imports
 from forms import DonationForm, RequestForm
+from time_limit import threshold_donation, threshold_request, is_action_allowed
 
-# Loading environment variables
+# 1. INITIALIZATION & CONFIG
 load_dotenv()
-
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-very-unsafe')
 
-# If the environment variable doesn't exist, we use a fallback (dev only!)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-dev-key-molto-insicura')
-
-# We correctly point to the 'instance' folder
+# Secure Database Path (Instance folder)
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, 'instance', 'BloodDonationSystem.db')
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'instance', 'BloodDonationSystem.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize protection against Cross-Site Request Forgery attacks
-csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login' # Redirect here if unauthorized
+login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
+# 2. MODELS (Keeping them here for simplicity, but could be in models.py)
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False) # Will store the hashed password
-    
-    def __init__(self, username, password):
-        self.name = username
-        self.password = password
-    
+    password = db.Column(db.String(60), nullable=False)
+
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -58,159 +45,44 @@ class BloodDonation(db.Model):
     next_donation = db.Column(db.Date)
     donation_counter = db.Column(db.Integer, default=1)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-    def __init__(self, name, age, blood_groups, city, email, latest_donation, next_donation, donation_counter):
-        self.name = name
-        self.age = age
-        self.blood_groups = blood_groups
-        self.city = city
-        self.email = email
-        self.latest_donation = latest_donation
-        self.next_donation = next_donation
-        self.donation_counter = donation_counter
-        
-class BloodRequest(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(50), nullable=False)
-    blood_groups = db.Column(db.String(5), nullable=False)
-    city = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
-    latest_request = db.Column(db.Date, nullable=False)
-    next_request = db.Column(db.Date)
-    request_counter = db.Column(db.Integer, default=1)
-
-
-    def __init__(self, name, blood_groups, city, email, latest_request, next_request, request_counter):
-        self.name = name
-        self.blood_groups = blood_groups
-        self.city = city
-        self.email = email
-        self.latest_request = latest_request
-        self.next_request = next_request
-        self.request_counter = request_counter
-        
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """
-    Secure login route for administrators.
-    Uses Bcrypt for hash verification to prevent credential exposure.
-    """
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(username=username).first()
-        
-        # Security: Verify user exists and check password hash
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash("Login successful! Welcome back, Admin.", "success")
-            return redirect(url_for('all_donations_db'))
-        else:
-            # Security Tip: Use a generic error message to prevent 'Username Enumeration'
-            flash("Login failed. Check your credentials and try again.", "danger")
-            
-    return render_template('login.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash("You have been logged out safely.", "info")
-    return redirect(url_for('home'))
-
-@app.route('/')
+# 3. PUBLIC ROUTES (Home, Donate, Find)
+@app.route("/")
 def home():
-    return render_template('home.html')
+    return render_template('index.html')
 
-@app.route('/empty_db')
-def no_donations():
-    return render_template('empty_db.html')
-
-@app.route('/blood_donation', methods=['GET', 'POST'])
+@app.route("/blood_donation", methods=['GET', 'POST'])
 def blood_donation():
-    """
-    Handles new blood donation submissions.
-    Security: Automatic CSRF protection and Server-Side validation via Flask-WTF.
-    """
     form = DonationForm()
-    
-    # validate_on_submit() checks if the request is POST AND if the CSRF token is valid
     if form.validate_on_submit():
-        # Get cleaned and validated data from the form
         email = form.email.data.lower()
-        
-        # Check if the donor already exists to verify the 3-month threshold
-        existing_donor = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
         today = datetime.date.today()
-
-        if existing_donor:
-            # Check if the 'next_donation' date has passed
-            if existing_donor.next_donation > today:
-                flash("Donation forbidden! Only one blood donation every 3 months is allowed.", "danger")
-                return redirect(url_for('blood_donation'))
-            
-            # Increment counter for returning donors
-            counter = existing_donor.donation_counter + 1
-        else:
-            counter = 1
-
-        # Create new record using validated data
-        new_donation = BloodDonation(
-            name=form.name.data.lower(),
-            age=form.age.data,
-            blood_groups=form.blood_groups.data.lower(),
-            city=form.city.data.lower(),
-            email=email,
-            latest_donation=today,
-            next_donation=threshold_donation(today),
-            donation_counter=counter
-        )
-
-        try:
-            db.session.add(new_donation)
-            db.session.commit()
-            flash(f"Thank you {form.name.data.capitalize()} for your availability. We'll get in touch soon!", "success")
-            return redirect(url_for('home'))
-        except Exception as e:
-            db.session.rollback()
-            flash("A database error occurred. Please try again later.", "warning")
+        
+        last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
+        if last_entry and not is_action_allowed(last_entry.next_donation, today):
+            flash("Safety limit: You can only donate once every 90 days.", "danger")
             return redirect(url_for('blood_donation'))
 
-    # If it's a GET request or form validation fails
+        new_donor = BloodDonation(
+            name=form.name.data.lower(), age=form.age.data,
+            blood_groups=form.blood_groups.data.lower(), city=form.city.data.lower(),
+            email=email, latest_donation=today, 
+            next_donation=threshold_donation(today),
+            donation_counter=(last_entry.donation_counter + 1 if last_entry else 1)
+        )
+        db.session.add(new_donor)
+        db.session.commit()
+        flash("Registration successful! Thank you for your donation.", "success")
+        return redirect(url_for('home'))
     return render_template('donate.html', form=form)
 
-
-@app.route('/blood_receive', methods=['GET', 'POST'])
+@app.route("/blood_receive", methods=['GET', 'POST'])
 def blood_receive():
     form = RequestForm()
-    
     if form.validate_on_submit():
-        email = form.email.data.lower()
-        today = datetime.date.today()
-        
-        # 1. Threshold Security Check: Prevent spam (1 request per week)
-        existing_request = BloodRequest.query.filter_by(email=email).order_by(BloodRequest.id.desc()).first()
-        
-        if existing_request and existing_request.next_request > today:
-            flash("Request Forbidden! Only one blood request per week is allowed.", "danger")
-            return redirect(url_for('blood_receive'))
-
-        # 2. Register the search request (Auditing/Logging)
-        new_request = BloodRequest(
-            name=form.name.data.lower(),
-            blood_groups=form.blood_groups.data.lower(),
-            city=form.city.data.lower(),
-            email=email,
-            latest_request=today,
-            next_request=threshold_request(today),
-            request_counter=(existing_request.request_counter + 1 if existing_request else 1)
-        )
-        
-        db.session.add(new_request)
-        db.session.commit()
-
-        # 3. Secure Search (SQL Injection Protected by SQLAlchemy)
         results = BloodDonation.query.filter_by(
             blood_groups=form.blood_groups.data.lower(),
             city=form.city.data.lower()
@@ -218,70 +90,45 @@ def blood_receive():
         
         if not results:
             return render_template('empty_db.html')
-            
-        return render_template('results.html', 
-                               blood_donations=results, 
-                               city=form.city.data, 
-                               total_result=len(results))
-
-    # GET request: Show empty form
+        return render_template('results.html', blood_donations=results, city=form.city.data, total_result=len(results))
     return render_template('find_blood.html', form=form)
 
-@app.route('/take_donation', methods=['POST'])
+# 4. ADMIN & AUTH ROUTES
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('all_donations_db'))
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form.get('username')).first()
+        if user and bcrypt.check_password_hash(user.password, request.form.get('password')):
+            login_user(user)
+            return redirect(url_for('all_donations_db'))
+        flash("Invalid credentials. Access denied.", "danger")
+    return render_template('login.html')
+
+@app.route("/all_donations_db")
+@login_required
+def all_donations_db():
+    donations = BloodDonation.query.all()[::-1]
+    count = BloodDonation.query.count()
+    return render_template('blood_db.html', blood_donations=donations, all_donations_counter=count)
+
+@app.route("/take_donation", methods=['POST'])
+@login_required # Only admin can remove records in this version
 def take_donation():
-    """
-    Handles the deletion of a blood donation record.
-    Security Improvements:
-    1. Changed from GET to POST to prevent CSRF (Cross-Site Request Forgery).
-    2. Added email verification to mitigate IDOR (Insecure Direct Object Reference).
-    3. Uses get_or_404 for robust error handling.
-    """
-    
-    # Retrieve data from the secure POST form
-    blood_donation_id = request.form.get('id')
-    user_email = request.form.get('email', '').lower()
+    donation_id = request.form.get('id')
+    donation = BloodDonation.query.get_or_404(donation_id)
+    db.session.delete(donation)
+    db.session.commit()
+    flash("Record removed successfully.", "success")
+    return redirect(url_for('all_donations_db'))
 
-    # 1. Validation: Ensure both fields are provided
-    if not blood_donation_id or not user_email:
-        flash("Invalid request. Please provide all required information.", "danger")
-        return redirect(url_for('all_donations_db'))
-
-    # 2. Fetch the record or return a 404 error if not found (Prevents app crashes)
-    donation = BloodDonation.query.get_or_404(blood_donation_id)
-
-    # 3. Security Check: Only the owner (by email) can delete their donation
-    # This prevents an attacker from deleting random records by guessing IDs
-    if donation.email != user_email:
-        # Log this internally as a potential suspicious activity
-        flash("Access Denied! You are not authorized to remove this record.", "danger")
-        return redirect(url_for('all_donations_db'))
-
-    try:
-        # 4. Perform the deletion
-        db.session.delete(donation)
-        db.session.commit()
-        
-        # Success message for the user
-        flash("Donation record successfully processed. Thank you for your contribution!", "success")
-    except Exception as e:
-        # Handle database errors gracefully
-        db.session.rollback()
-        flash("An error occurred while processing your request. Please try again later.", "warning")
-    
+@app.route("/logout")
+def logout():
+    logout_user()
     return redirect(url_for('home'))
 
-@app.route('/all_donations_db', methods=['GET'])
-@login_required # Only a logged admin can see this page
-def all_donations_db():
-    """
-    Administrative view. Only accessible by authorized super-users.
-    """
-    all_donations = BloodDonation.query.all()[::-1]
-    all_donations_counter = BloodDonation.query.count()
-    return render_template('blood_db.html', 
-                           blood_donations=all_donations, 
-                           all_donations_counter=all_donations_counter)
-
 if __name__ == '__main__':
-    #app.run(debug=True)
-    app.run(debug=False)
+    with app.app_context():
+        db.create_all() # Ensure DB tables exist
+    app.run(debug=True)
