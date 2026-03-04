@@ -1,64 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container donation-page">
-    <div class="jumbotron text-center">
-        <h1>Blood Donation Page</h1>
-        <p class="text-muted">Join our community and save lives.</p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 border p-4 shadow-sm bg-light">
+            <h2 class="text-center mb-4">Register Your Donation</h2>
+            <form method="POST" action="">
+                {{ form.csrf_token }}
+                
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        {{ form.name.label(class="font-weight-bold") }}
+                        {{ form.name(class="form-control-plaintext border-bottom", readonly=True) }}
+                    </div>
+                    <div class="form-group col-md-6">
+                        {{ form.email.label(class="font-weight-bold") }}
+                        {{ form.email(class="form-control-plaintext border-bottom", readonly=True) }}
+                    </div>
+                </div>
+
+                <div class="form-row mt-3">
+                    <div class="form-group col-md-4">
+                        {{ form.age.label }}
+                        {{ form.age(class="form-control", placeholder="Age") }}
+                    </div>
+                    <div class="form-group col-md-4">
+                        {{ form.blood_groups.label }}
+                        {{ form.blood_groups(class="form-control") }}
+                    </div>
+                    <div class="form-group col-md-4">
+                        {{ form.city.label }}
+                        {{ form.city(class="form-control", placeholder="Your City") }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-danger btn-block mt-4 shadow">Confirm Donation</button>
+            </form>
+        </div>
     </div>
-
-    <div class="flash">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, mess in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              <strong>{{ category|capitalize }}:</strong> {{ mess }}
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-    </div>
-
-    <form action="{{ url_for('blood_donation') }}" method="POST" class="ui form mt-4">
-        {{ form.csrf_token }} <div class="form-group">
-            {{ form.name.label }}<br>
-            {{ form.name(class="form-control", placeholder="Enter full name") }}
-            {% if form.name.errors %}
-                {% for error in form.name.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            {{ form.age.label }}<br>
-            {{ form.age(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.blood_groups.label }}<br>
-            {{ form.blood_groups(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.city.label }}<br>
-            {{ form.city(class="form-control", placeholder="Your city") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.email.label }}<br>
-            {{ form.email(class="form-control", placeholder="name@example.com") }}
-        </div>
-
-        <div class="mt-4">
-            {{ form.submit(class="btn btn-primary btn-block") }}
-        </div>
-    </form>
-
-    <div class="text-right mt-3">
-        <a class="btn btn-outline-secondary" href="/">Back</a>
-    </div>     
 </div>
 {% endblock %}

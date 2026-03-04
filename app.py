@@ -110,21 +110,32 @@ def logout():
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
 def blood_donation():
-    """ Register a new donation with 90-day cooldown check """
+    """ Register a new donation with pre-filled user data """
     form = DonationForm()
+
+    # Pre-fill the form fields on GET request
+    if request.method == 'GET':
+        form.name.data = current_user.username
+        form.email.data = current_user.email
+    
     if form.validate_on_submit():
         email = form.email.data.lower()
         today = datetime.date.today()
         
+        # Check for the 90-day cooldown period
         last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
         if last_entry and not is_action_allowed(last_entry.next_donation, today):
             flash("Safety limit: You can only donate once every 90 days.", "danger")
             return redirect(url_for('blood_donation'))
 
+        # Create new donation record
         new_donor = BloodDonation(
-            name=form.name.data.lower(), age=form.age.data,
-            blood_groups=form.blood_groups.data.lower(), city=form.city.data.lower(),
-            email=email, latest_donation=today, 
+            name=form.name.data.lower(), 
+            age=form.age.data,
+            blood_groups=form.blood_groups.data.lower(), 
+            city=form.city.data.lower(),
+            email=email, 
+            latest_donation=today, 
             next_donation=threshold_donation(today),
             donation_counter=(last_entry.donation_counter + 1 if last_entry else 1)
         )
@@ -132,6 +143,7 @@ def blood_donation():
         db.session.commit()
         flash("Registration successful! Thank you for your donation.", "success")
         return redirect(url_for('home'))
+        
     return render_template('donate.html', form=form)
 
 @app.route("/blood_receive", methods=['GET', 'POST'])
