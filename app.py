@@ -158,8 +158,10 @@ def take_donation():
     Deletes the record from DB and confirms via flash message.
     """
     donation_id = request.form.get('id')
-    # This captures the email the user typed in the 'Confirm your email' field
-    requester_email = request.form.get('email') 
+    donation = BloodDonation.query.get_or_404(donation_id)
+    
+    # We use the email of the person currently logged in
+    requester_email = current_user.email
     
     donation = BloodDonation.query.get_or_404(donation_id)
     
