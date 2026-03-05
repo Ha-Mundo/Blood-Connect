@@ -79,12 +79,24 @@ def login():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
-    """ Handle new user registration with password hashing """
+    """ Handle new user registration with duplicate check """
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Check if username or email already exists in the database
+        existing_user = User.query.filter(
+            (User.username == form.username.data) | 
+            (User.email == form.email.data.lower())
+        ).first()
+
+        if existing_user:
+            # If a match is found, we stop and inform the user
+            flash("Username or Email already registered. Please use different credentials or login.", "danger")
+            return render_template('register.html', form=form)
+
+        # If no duplicate, proceed with hashing and saving
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(
             username=form.username.data, 
