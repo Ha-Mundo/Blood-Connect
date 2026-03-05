@@ -34,11 +34,11 @@ class DonationForm(FlaskForm):
     submit = SubmitField('Submit Donation')
     
 class RequestForm(FlaskForm):
-    name = StringField('Recipient Name', validators=[DataRequired(), Length(min=2, max=50)])
+    name = StringField('Name')
     blood_groups = SelectField('Blood Group Needed', choices=[
         ('a+', 'A+'), ('a-', 'A-'), ('b+', 'b+'), ('b-', 'B-'),
         ('ab+', 'AB+'), ('ab-', 'AB-'), ('o+', 'O+'), ('o-', 'O-')
     ])
     city = StringField('City', validators=[DataRequired(), Length(max=50)])
-    email = StringField('Your Contact Email', validators=[DataRequired(), Email()])
+    email = StringField('Email')
     submit = SubmitField('Search for Donors')
