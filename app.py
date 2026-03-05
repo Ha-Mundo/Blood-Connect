@@ -61,19 +61,26 @@ def home():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    """ Handle user login with Bcrypt authentication """
+    """ Handle user login with secure password verification """
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        # 1. Fetch user by email (always use .lower() for consistency)
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+
+        # 2. Verify if user exists AND password hash matches
         if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user)
+            login_user(user, remember=True)
             flash(f"Welcome back, {user.username}!", "success")
-            return redirect(url_for('home'))
+            
+            # Redirect to the page the user was trying to access, or home
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
-            flash("Login Unsuccessful. Please check username and password", "danger")
+            # Generic error message for security
+            flash("Login Unsuccessful. Please check email and password.", "danger")
             
     return render_template('login.html', form=form)
 
@@ -92,11 +99,10 @@ def register():
         ).first()
 
         if existing_user:
-            # If a match is found, we stop and inform the user
-            flash("Username or Email already registered. Please use different credentials or login.", "danger")
+            flash("Username or Email already registered. Please use different credentials.", "danger")
             return render_template('register.html', form=form)
 
-        # If no duplicate, proceed with hashing and saving
+        # Hash password and save user
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(
             username=form.username.data, 
@@ -125,7 +131,6 @@ def blood_donation():
     """ Register a new donation with pre-filled user data """
     form = DonationForm()
 
-    # Pre-fill the form fields on GET request
     if request.method == 'GET':
         form.name.data = current_user.username
         form.email.data = current_user.email
@@ -134,13 +139,11 @@ def blood_donation():
         email = form.email.data.lower()
         today = datetime.date.today()
         
-        # Check for the 90-day cooldown period
         last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
         if last_entry and not is_action_allowed(last_entry.next_donation, today):
             flash("Safety limit: You can only donate once every 90 days.", "danger")
             return redirect(url_for('blood_donation'))
 
-        # Create new donation record
         new_donor = BloodDonation(
             name=form.name.data.lower(), 
             age=form.age.data,
@@ -153,7 +156,7 @@ def blood_donation():
         )
         db.session.add(new_donor)
         db.session.commit()
-        flash("Registration successful! Thank you for your donation.", "success")
+        flash("Registration successful!", "success")
         return redirect(url_for('home'))
         
     return render_template('donate.html', form=form)
@@ -165,7 +168,6 @@ def blood_receive():
     form = RequestForm()
     
     if request.method == 'POST':
-        # Even if not displayed, we can link the search to current_user internally
         results = BloodDonation.query.filter_by(
             blood_groups=form.blood_groups.data.lower(),
             city=form.city.data.lower()
@@ -184,19 +186,12 @@ def blood_receive():
 @app.route("/take_donation", methods=['POST'])
 @login_required
 def take_donation():
-    """ 
-    Handles the blood request from results.html.
-    Deletes the record from DB and confirms via flash message.
-    """
+    """ Handles the blood request from results.html. """
     donation_id = request.form.get('id')
     donation = BloodDonation.query.get_or_404(donation_id)
     
-    # We use the email of the person currently logged in
     requester_email = current_user.email
     
-    donation = BloodDonation.query.get_or_404(donation_id)
-    
-    # Logic: Remove the record because the blood has been 'taken/requested'
     db.session.delete(donation)
     db.session.commit()
     
