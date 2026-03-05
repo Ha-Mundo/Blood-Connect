@@ -1,56 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container request-page">
-    <div class="jumbotron text-center">
+<div class="container request-page mt-5">
+    <div class="jumbotron text-center shadow-sm">
         <h1>Find Blood Donors</h1>
-        <p class="text-danger">Requests are limited to once per week per email.</p>
+        <p class="text-muted">Search our database for compatible donors in your area.</p>
+        <small class="text-danger font-weight-bold">Note: Search is based on real-time availability.</small>
     </div>
 
-    <div class="flash">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, mess in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              {{ mess }}
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+    <div class="row justify-content-center">
+        <div class="col-md-6 border p-4 bg-white shadow-sm">
+            <form action="{{ url_for('blood_receive') }}" method="POST">
+                {{ form.csrf_token }}
+
+                <div class="form-group">
+                    {{ form.blood_groups.label(class="font-weight-bold") }}
+                    {{ form.blood_groups(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.city.label(class="font-weight-bold") }}
+                    {{ form.city(class="form-control", placeholder="Enter city name") }}
+                </div>
+
+                <div class="mt-4">
+                    {{ form.submit(class="btn btn-primary btn-block shadow-sm") }}
+                </div>
+            </form>
+        </div>
     </div>
-
-    <form action="{{ url_for('blood_receive') }}" method="POST" class="ui form mt-4">
-        {{ form.csrf_token }}
-
-        <div class="form-group">
-            {{ form.name.label }}<br>
-            {{ form.name(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.blood_groups.label }}<br>
-            {{ form.blood_groups(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.city.label }}<br>
-            {{ form.city(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            {{ form.email.label }}<br>
-            {{ form.email(class="form-control") }}
-        </div>
-
-        <div class="mt-4">
-            {{ form.submit(class="btn btn-primary btn-block") }}
-        </div>
-    </form>
 
     <div class="text-right mt-5">
-        <a class="btn btn-outline-secondary" href="/">Back</a>
+        <a class="btn btn-outline-secondary" href="/">Back to Dashboard</a>
     </div> 
 </div>
 {% endblock %}
