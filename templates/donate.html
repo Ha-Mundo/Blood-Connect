@@ -7,7 +7,7 @@
             <form method="POST" action="">
                 {{ form.csrf_token }}
                 
-                <div class="form-row">
+                <div class="form-row mt-3">
                     <div class="form-group col-md-6">
                         {{ form.name.label(class="font-weight-bold") }}
                         {{ form.name(class="form-control-plaintext border-bottom", readonly=True) }}
@@ -35,6 +35,9 @@
 
                 <button type="submit" class="btn btn-danger btn-block mt-4 shadow">Confirm Donation</button>
             </form>
+            <div class="text-right mt-5">
+                <a class="btn btn-outline-secondary" href="/">Back</a>
+            </div> 
         </div>
     </div>
 </div>
