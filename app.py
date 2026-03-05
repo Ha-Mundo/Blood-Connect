@@ -149,9 +149,11 @@ def blood_donation():
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
 def blood_receive():
-    """ Search for donors in the database """
+    """ Search for donors based on blood group and city """
     form = RequestForm()
-    if form.validate_on_submit():
+    
+    if request.method == 'POST':
+        # Even if not displayed, we can link the search to current_user internally
         results = BloodDonation.query.filter_by(
             blood_groups=form.blood_groups.data.lower(),
             city=form.city.data.lower()
@@ -159,7 +161,12 @@ def blood_receive():
         
         if not results:
             return render_template('empty_db.html')
-        return render_template('results.html', blood_donations=results, city=form.city.data, total_result=len(results))
+            
+        return render_template('results.html', 
+                               blood_donations=results, 
+                               city=form.city.data, 
+                               total_result=len(results))
+                               
     return render_template('find_blood.html', form=form)
 
 @app.route("/take_donation", methods=['POST'])
