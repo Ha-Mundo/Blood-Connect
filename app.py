@@ -25,7 +25,7 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login' # Fixed: Points to the login route
+login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
 # 2. MODELS
@@ -35,7 +35,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False) 
     password = db.Column(db.String(60), nullable=False)
-    role = db.Column(db.String(10), default='user') # 'admin' or 'user'
+    role = db.Column(db.String(10), default='user')
 
 class BloodDonation(db.Model):
     """ Model to store blood donation records """
@@ -49,9 +49,25 @@ class BloodDonation(db.Model):
     next_donation = db.Column(db.Date)
     donation_counter = db.Column(db.Integer, default=1)
 
+class BloodRequest(db.Model):
+    """ Model to track blood requests made by users """
+    id = db.Column(db.Integer, primary_key=True)
+    requester_email = db.Column(db.String(120), nullable=False)
+    request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# --- CONTEXT PROCESSOR FOR NAVBAR STATS ---
+@app.context_processor
+def inject_user_stats():
+    """ Inject user statistics into all templates (base.html) """
+    stats = {'donations': 0, 'requests': 0}
+    if current_user.is_authenticated:
+        stats['donations'] = BloodDonation.query.filter_by(email=current_user.email).count()
+        stats['requests'] = BloodRequest.query.filter_by(requester_email=current_user.email).count()
+    return dict(user_stats=stats)
 
 # 3. ROUTES
 @app.route("/")
@@ -67,19 +83,14 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        # 1. Fetch user by email (always use .lower() for consistency)
         user = User.query.filter_by(email=form.email.data.lower()).first()
 
-        # 2. Verify if user exists AND password hash matches
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=True)
             flash(f"Welcome back, {user.username}!", "success")
-            
-            # Redirect to the page the user was trying to access, or home
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
-            # Generic error message for security
             flash("Login Unsuccessful. Please check email and password.", "danger")
             
     return render_template('login.html', form=form)
@@ -92,7 +103,6 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-        # Check if username or email already exists in the database
         existing_user = User.query.filter(
             (User.username == form.username.data) | 
             (User.email == form.email.data.lower())
@@ -102,7 +112,6 @@ def register():
             flash("Username or Email already registered. Please use different credentials.", "danger")
             return render_template('register.html', form=form)
 
-        # Hash password and save user
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(
             username=form.username.data, 
@@ -128,9 +137,7 @@ def logout():
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
 def blood_donation():
-    """ Register a new donation with pre-filled user data """
     form = DonationForm()
-
     if request.method == 'GET':
         form.name.data = current_user.username
         form.email.data = current_user.email
@@ -139,6 +146,7 @@ def blood_donation():
         email = form.email.data.lower()
         today = datetime.date.today()
         
+        # --- 90 DAYS CHECK ---
         last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
         if last_entry and not is_action_allowed(last_entry.next_donation, today):
             flash("Safety limit: You can only donate once every 90 days.", "danger")
@@ -186,16 +194,31 @@ def blood_receive():
 @app.route("/take_donation", methods=['POST'])
 @login_required
 def take_donation():
-    """ Handles the blood request from results.html. """
     donation_id = request.form.get('id')
     donation = BloodDonation.query.get_or_404(donation_id)
+    today = datetime.date.today()
+
+    # --- PREVENT SELF-REQUEST ---
+    if donation.email == current_user.email:
+        flash("You cannot request your own donation!", "warning")
+        return redirect(url_for('home'))
+
+    # --- 7 DAYS REQUEST LIMIT ---
+    last_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
+    if last_request:
+        # We calculate the allowed date for the next request
+        allowed_date = threshold_request(last_request.request_date)
+        if not is_action_allowed(allowed_date, today):
+            flash("Safety limit: You can only make one request every 7 days.", "danger")
+            return redirect(url_for('home'))
     
-    requester_email = current_user.email
-    
+    # Process request
+    new_request = BloodRequest(requester_email=current_user.email, request_date=today)
+    db.session.add(new_request)
     db.session.delete(donation)
     db.session.commit()
     
-    flash(f"Request successful! A notification has been sent to {requester_email}.", "success")
+    flash(f"Request successful! Notification sent.", "success")
     return redirect(url_for('home'))
 
 @app.route("/all_donations_db")
@@ -207,20 +230,6 @@ def all_donations_db():
     donations = BloodDonation.query.all()[::-1]
     count = BloodDonation.query.count()
     return render_template('blood_db.html', blood_donations=donations, all_donations_counter=count)
-
-# 4. CLI COMMANDS
-@app.cli.command("create-admin")
-def create_admin():
-    """ Helper to create an admin via Terminal """
-    username = input("Enter admin username: ")
-    email = input("Enter admin email: ")
-    password = input("Enter admin password: ")
-    
-    hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
-    admin = User(username=username, email=email, password=hashed_pw, role='admin')
-    db.session.add(admin)
-    db.session.commit()
-    print(f"Admin {username} created successfully!")
 
 if __name__ == '__main__':
     with app.app_context():
