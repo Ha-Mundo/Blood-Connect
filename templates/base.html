@@ -30,11 +30,21 @@
         <h2 class="display-7 header">Blood Donation System</h2>
       </span>
 
-        {% if current_user.is_authenticated %}
-        <div class="m-3">
-              <span class="m-3">Welcome back, <strong>{{ current_user.username }}</strong>!</span>
-                <a href="{{ url_for('logout') }}" class="btn btn-sm">Logout</a>
-            </div>
+       
+              {% if current_user.is_authenticated %}
+        <div class="d-flex align-items-center">
+            
+            <img src="{{ url_for('static', filename='user-solid-full.svg') }}" 
+                 alt="User Profile" 
+                 class="me-2"
+                 style="width: 28px; height: 28px; cursor: pointer;" 
+                 data-bs-toggle="tooltip" 
+                 data-bs-placement="bottom" 
+                 title="Donazioni: {{ user_stats.donations }} | Richieste: {{ user_stats.requests }}">
+
+            <span class="me-3"><strong>{{ current_user.username }}</strong>!</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+        </div>
         {% endif %}
     </nav>
 
