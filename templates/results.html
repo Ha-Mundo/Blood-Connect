@@ -24,14 +24,16 @@
                         <span class="badge badge-info">{{ blood_donation.blood_groups.upper() }}</span>
                     </td>
                     <td class="align-middle">{{ blood_donation.city|capitalize }}</td>
-                    <td>
-                        <form action="{{ url_for('take_donation') }}" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="id" value="{{ blood_donation.id }}">
-                            <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
-                                Request Donation
-                            </button>
-                        </form>
+                    <td class="align-middle">
+                        <div class="d-flex align-items-center" style="height: 100%;">
+                            <form action="{{ url_for('take_donation') }}" method="POST" class="m-0 w-100">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="id" value="{{ blood_donation.id }}">
+                                <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
+                                    Request Donation
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

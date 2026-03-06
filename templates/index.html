@@ -1,17 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container text-center">
-    <div class="main jumbotron jumbotron-fluid">
-        <img src="/static/BDS.png" class="blogo">
-        <h2 class="display-4 header">Blood Donation System</h2>
-        {% if current_user.is_authenticated %}
-            <p>Welcome back, <strong>{{ current_user.username }}</strong>!</p>
-            <div class="mb-4">
-                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">Logout</a>
-            </div>
-        {% endif %}
-    </div>
-
+    
     <div class="row justify-content-center mt-4">
         {% if not current_user.is_authenticated %}
             <div class="col-lg-12">

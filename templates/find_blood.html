@@ -1,14 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container request-page mt-5">
-    <div class="jumbotron text-center shadow-sm">
-        <h1>Find Blood Donors</h1>
-        <p class="text-muted">Search our database for compatible donors in your area.</p>
-        <small class="text-danger font-weight-bold">Note: Search is based on real-time availability.</small>
-    </div>
-
     <div class="row justify-content-center">
         <div class="col-md-6 border p-4 bg-white shadow-sm">
+              <h1>Find Blood Donors</h1>
+                <p class="text-muted">Search our database for compatible donors in your area.</p>
             <form class="pb-4" action="{{ url_for('blood_receive') }}" method="POST">
                 {{ form.csrf_token }}
 
@@ -23,7 +19,7 @@
                 </div>
 
                 <div class="mt-4">
-                    {{ form.submit(class="btn btn-primary btn-block shadow-sm") }}
+                    {{ form.submit(class="btn btn-danger btn-block mt-4 shadow") }}
                 </div>
             </form>
             <div class="text-right mt-4">

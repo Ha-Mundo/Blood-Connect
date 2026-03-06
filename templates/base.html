@@ -11,11 +11,34 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js" /></script>
     <link href="../static/style.css" type="text/css" rel="stylesheet" />
+    <title>Blood Donation System</title>
     {% endblock %}
   </head>
 
-  <body id="content"> 
-    <div class="container mt-3">
+  <body id="content" class="d-flex flex-column min-vh-100"> 
+    
+    <nav class="navbar">
+      <span class="m-3">
+        <img src="/static/BDS.png" class="blogo">
+        <h2 class="display-7 header">Blood Donation System</h2>
+      </span>
+        {% if current_user.is_authenticated %}
+        <div class="m-3">
+              <span class="m-3">Welcome back, <strong>{{ current_user.username }}</strong>!</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm">Logout</a>
+            </div>
+        {% endif %}
+    </nav>
+
+
+    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+ 
+        {% block content %}
+        {% endblock %}
+    
+    </div>
+
+     <div class="container mt-3">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -29,19 +52,12 @@
       {% endif %}
     {% endwith %}
     </div>
-
-    <div>
-        {% block content %}
-        {% endblock %}
-    </div>
     
-    <footer>
-      {% block footer %}
-      <div class = "text-center">     
-         <img src="/static/BDS.png" class="blogofot">
-         <p>Blood Donation System&copy; 2019</p>
-      </div>
-      {% endblock %}
+    <footer class="mt-auto">
+      <div class="text-center">     
+        <img src="/static/BDS.png" class="blogofot">
+        <p>Blood Donation System &copy; 2019</p>
+     </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
