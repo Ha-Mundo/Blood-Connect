@@ -1,23 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="container mt-5">
+
     <div class="row justify-content-center">
-        <div class="col-md-6 border p-4 shadow-sm">
+
+        <!-- Login card -->
+        <div class="col-md-6 border p-4 shadow-sm bg-white rounded">
+
             <h3 class="text-center mb-4">Login</h3>
+
             <form method="POST" action="">
                 {{ form.csrf_token }}
-                <div class="form-group">
-                    {{ form.email.label(class="form-control-label") }}
+
+                <!-- Email field -->
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
                     {{ form.email(class="form-control") }}
                 </div>
-                <div class="form-group">
-                    {{ form.password.label(class="form-control-label") }}
+
+                <!-- Password field -->
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
                     {{ form.password(class="form-control") }}
                 </div>
-                <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
+
+                <!-- Submit button -->
+                <button type="submit" class="btn btn-primary w-100 mt-3">
+                    Login
+                </button>
+
             </form>
-            <p class="mt-5 text-center">New here? <a href="{{ url_for('register') }}">Register now</a></p>
+
+            <!-- Registration link -->
+            <p class="mt-5 text-center">
+                New here? <a href="{{ url_for('register') }}">Register now</a>
+            </p>
+
         </div>
+
     </div>
+
 </div>
+
 {% endblock %}

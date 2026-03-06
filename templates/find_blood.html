@@ -1,32 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="container request-page mt-5">
+
     <div class="row justify-content-center">
-        <div class="col-md-6 border p-4 bg-white shadow-sm">
-              <h1>Find Blood Donors</h1>
-                <p class="text-muted">Search our database for compatible donors in your area.</p>
+
+        <!-- Search card -->
+        <div class="col-md-6 border p-4 bg-white shadow-sm rounded">
+
+            <h1>Find Blood Donors</h1>
+            <p class="text-muted">Search our database for compatible donors in your area.</p>
+
             <form class="pb-4" action="{{ url_for('blood_receive') }}" method="POST">
                 {{ form.csrf_token }}
 
-                <div class="form-group">
-                    {{ form.blood_groups.label(class="font-weight-bold") }}
-                    {{ form.blood_groups(class="form-control") }}
+                <!-- Blood group field -->
+                <div class="mb-3">
+                    {{ form.blood_groups.label(class="fw-bold") }}
+                    {{ form.blood_groups(class="form-select") }}
                 </div>
 
-                <div class="form-group">
-                    {{ form.city.label(class="font-weight-bold") }}
+                <!-- City field -->
+                <div class="mb-3">
+                    {{ form.city.label(class="fw-bold") }}
                     {{ form.city(class="form-control", placeholder="Enter city name") }}
                 </div>
 
+                <!-- Submit button -->
                 <div class="mt-4">
-                    {{ form.submit(class="btn btn-danger btn-block mt-4 shadow") }}
+                    {{ form.submit(class="btn btn-danger w-100 mt-3 shadow") }}
                 </div>
+
             </form>
-            <div class="text-right mt-4">
+
+            <!-- Back button -->
+            <div class="text-end mt-4">
                 <a class="btn btn-outline-secondary" href="/">Back</a>
-            </div> 
+            </div>
+
         </div>
+
     </div>
-    
+
 </div>
+
 {% endblock %}

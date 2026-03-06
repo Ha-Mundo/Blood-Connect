@@ -1,16 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
 
+<div class="container text-center py-5">
 
-<div class="jumbotron text-center">
-    <h1 class="display-4">
-        Sorry! No donations available
-    </h1>
+    <!-- Styled message box -->
+    <div class="p-5 rounded shadow-sm"
+         style="background-color:#FFE5E5; box-shadow:0 4px 12px rgba(211,47,47,0.2);">
+
+        <h1 class="display-4 mb-3"
+            style="color:#B71C1C; font-weight:700;">
+            Sorry! No donations available
+        </h1>
+
+        <p style="color:#424242; font-size:1.2rem;">
+            It looks like there are no blood donation events available right now.
+        </p>
+
+        <!-- Back button -->
+        <div class="mt-4">
+            <a href="/"
+               class="btn btn-lg"
+               style="background-color:#D32F2F; color:#FFFFFF; font-weight:600; padding:0.75rem 2rem; border-radius:6px;">
+                Back to Home
+            </a>
+        </div>
+
+    </div>
+
 </div>
-<div class="text-center">
-    <a class = "btn icon-box" href="/">
-     <h3 class="text-right">Back</h3>
-    </a>
-</div>      
 
 {% endblock %}

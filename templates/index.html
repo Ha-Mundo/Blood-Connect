@@ -1,35 +1,75 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="container text-center">
-    
-    <div class="row justify-content-center mt-4">
+
+    <!-- Main actions row -->
+    <div class="row justify-content-center mt-4 g-4">
+
         {% if not current_user.is_authenticated %}
+
+            <!-- Login/Register buttons -->
             <div class="col-lg-12">
-                <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}">Login to Access System</a>
-                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('register') }}">Register</a>
+                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('login') }}">
+                    Login to Access System
+                </a>
+
+                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('register') }}">
+                    Register
+                </a>
             </div>
+
         {% else %}
-            <div class="col-lg-4">
-                <a class="btn-d icon-box" href='/blood_donation'> 
+
+            <!-- Donate blood -->
+            <div class="col-lg-4 col-md-6">
+                <a class="btn-d icon-box d-block p-3" href="/blood_donation">
+
                     <img src="/static/blood-donation.png" class="b-icons">
-                    <h2 class="d-inline-block">Donate Blood</h2>
+
+                    <h2 class="d-inline-block mt-2">
+                        Donate Blood
+                    </h2>
+
                 </a>
             </div>
-            <div class="col-lg-4">
-                <a class="btn-r icon-box" href='/blood_receive'>
+
+            <!-- Receive blood -->
+            <div class="col-lg-4 col-md-6">
+                <a class="btn-r icon-box d-block p-3" href="/blood_receive">
+
                     <img src="/static/blood-request.png" class="b-icons">
-                    <h2 class="d-inline-block">Receive Blood</h2>
+
+                    <h2 class="d-inline-block mt-2">
+                        Receive Blood
+                    </h2>
+
                 </a>
             </div>
+
             {% if current_user.role == 'admin' %}
-            <div class="col-lg-4">
-                <a class="btn-admin icon-box" href='/all_donations_db' style="background-color: #f8d7da;">
+
+            <!-- Admin database access -->
+            <div class="col-lg-4 col-md-6">
+                <a class="btn-admin icon-box d-block p-3"
+                   href="/all_donations_db"
+                   style="background-color:#f8d7da;">
+
                     <img src="/static/db-icon.png" class="b-icons">
-                    <h2>Admin DB</h2>
+
+                    <h2 class="mt-2">
+                        Admin DB
+                    </h2>
+
                 </a>
             </div>
+
             {% endif %}
+
         {% endif %}
+
     </div>
+
 </div>
+
 {% endblock %}

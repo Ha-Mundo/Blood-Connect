@@ -1,47 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
 
-
 <div class="container text-center">
-    <div class="jumbotron">
+
+    <div class="py-5 mb-4 bg-light rounded-3">
         <h1>Blood Donation Database</h1>
     </div>
 
-    <div >
-        <h2 class="info">Total {{all_donations_counter}} donations </h2>
+    <div>
+        <h2 class="info">Total {{all_donations_counter}} donations</h2>
     </div>
 
-    <table style="width:100%; padding-top: 50px" class=" table  table-striped">
-  <tr class="table-primary">
-    <th>Name</th>
-    <th>Age</th> 
-    <th>Blood Groups</th>
-    <th>City</th>
-    <th>Donation Date</th>
-    <th>Email</th>
-  </tr>
-  
-  {% for blood_donation in blood_donations %}
-              <tr>
-                  <td>{{ blood_donation.name[0]|upper}}{{ blood_donation.name[1:] }}</td> 
-                  <td>{{ blood_donation.age }} </td>
-                  <td>{{ blood_donation.blood_groups.upper() }}</td>
-                  <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
-                  <td>{{ blood_donation.latest_donation.strftime('%d /%m /%Y') }}</td>
-                  <td>
-                      <a href="email:{{ blood_donation.email }}">
-                          {{ blood_donation.email }}
-                      </a>
-                  </td>
-              </tr>
-  {% endfor %}
+    <!-- Donations table -->
+    <table class="table table-striped" style="width:100%; padding-top:50px;">
+        <thead class="table-primary">
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Blood Groups</th>
+                <th>City</th>
+                <th>Donation Date</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for blood_donation in blood_donations %}
+            <tr>
+                <td>{{ blood_donation.name[0]|upper}}{{ blood_donation.name[1:] }}</td> 
+                <td>{{ blood_donation.age }}</td>
+                <td>{{ blood_donation.blood_groups.upper() }}</td>
+                <td>{{ blood_donation.city[0]|upper}}{{ blood_donation.city[1:] }}</td>
+                <td>{{ blood_donation.latest_donation.strftime('%d /%m /%Y') }}</td>
+                <td>
+                    <!-- Mail link -->
+                    <a href="mailto:{{ blood_donation.email }}">
+                        {{ blood_donation.email }}
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
 
     </table>
-    <div class="text-right">
-        <a class = "btn icon-box" href="/">
-         <h3 class="text-right">Back</h3>
+
+    <!-- Back button -->
+    <div class="text-end">
+        <a class="btn btn-secondary icon-box" href="/">
+            Back
         </a>
-    </div> 
+    </div>
 
 </div>
+
 {% endblock %}
