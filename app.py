@@ -59,14 +59,20 @@ class BloodRequest(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- CONTEXT PROCESSOR FOR NAVBAR STATS ---
+# --- CONTEXT PROCESSOR FOR STATS ---
 @app.context_processor
-def inject_user_stats():
-    """ Inject user statistics into all templates (base.html) """
-    stats = {'donations': 0, 'requests': 0}
+def inject_global_data():
+    """ Inject global stats into all templates (base.html, index.html, etc.) """
+    stats = {'donations': 0, 'requests': 0, 'total_available': 0}
+    
+    # Count all available donations in the system
+    stats['total_available'] = BloodDonation.query.count()
+    
     if current_user.is_authenticated:
+        # User-specific stats
         stats['donations'] = BloodDonation.query.filter_by(email=current_user.email).count()
         stats['requests'] = BloodRequest.query.filter_by(requester_email=current_user.email).count()
+        
     return dict(user_stats=stats)
 
 # 3. ROUTES
