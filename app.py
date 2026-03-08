@@ -178,22 +178,30 @@ def blood_donation():
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
 def blood_receive():
-    """ Search for donors based on blood group and city """
+    """ Search for donors based on blood group and city with pagination """
     form = RequestForm()
     
-    if request.method == 'POST':
-        results = BloodDonation.query.filter_by(
-            blood_groups=form.blood_groups.data.lower(),
-            city=form.city.data.lower()
-        ).all()
+    # Get parameters from POST (initial search) or GET (pagination links)
+    city = request.form.get('city') or request.args.get('city')
+    bg = request.form.get('blood_groups') or request.args.get('bg')
+    
+    if city and bg:
+        # Get current page number from URL, default is 1
+        page = request.args.get('page', 1, type=int)
         
-        if not results:
+        # Query with pagination (5 items per page)
+        pagination = BloodDonation.query.filter_by(
+            blood_groups=bg.lower(),
+            city=city.lower()
+        ).paginate(page=page, per_page=10, error_out=False)
+        
+        if not pagination.items:
             return render_template('empty_db.html')
             
         return render_template('results.html', 
-                               blood_donations=results, 
-                               city=form.city.data, 
-                               total_result=len(results))
+                               pagination=pagination, 
+                               city=city, 
+                               bg=bg)
                                
     return render_template('find_blood.html', form=form)
 
@@ -230,12 +238,16 @@ def take_donation():
 @app.route("/all_donations_db")
 @login_required
 def all_donations_db():
-    """ Admin only: View all donation records """
+    """ Admin only: View all donation records paginated """
     if current_user.role != 'admin':
         abort(403) 
-    donations = BloodDonation.query.all()[::-1]
+        
+    page = request.args.get('page', 1, type=int)
+    # Paginate all records ordered by newest first
+    pagination = BloodDonation.query.order_by(BloodDonation.id.desc()).paginate(page=page, per_page=10, error_out=False)
     count = BloodDonation.query.count()
-    return render_template('blood_db.html', blood_donations=donations, all_donations_counter=count)
+    
+    return render_template('blood_db.html', pagination=pagination, all_donations_counter=count)
 
 if __name__ == '__main__':
     with app.app_context():
