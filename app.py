@@ -48,12 +48,14 @@ class BloodDonation(db.Model):
     latest_donation = db.Column(db.Date, nullable=False)
     next_donation = db.Column(db.Date)
     donation_counter = db.Column(db.Integer, default=1)
+    status = db.Column(db.String(20), nullable=False, default='Pending')
 
 class BloodRequest(db.Model):
     """ Model to track blood requests made by users """
     id = db.Column(db.Integer, primary_key=True)
     requester_email = db.Column(db.String(120), nullable=False)
     request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
+    status = db.Column(db.String(20), nullable=False, default='Pending')
 
 @login_manager.user_loader
 def load_user(user_id):
