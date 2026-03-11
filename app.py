@@ -54,10 +54,10 @@ class BloodRequest(db.Model):
     """ Model to track blood requests made by users """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
     blood_groups = db.Column(db.String(5), nullable=False)
     city = db.Column(db.String(50), nullable=False)
-    requester_email = db.Column(db.String(120), nullable=False)
+    requester_email = db.Column(db.String(120), nullable=False)  
+    donor_email = db.Column(db.String(120), nullable=False)     
     request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
     status = db.Column(db.String(20), nullable=False, default='Pending')
 
@@ -233,7 +233,14 @@ def take_donation():
             return redirect(url_for('home'))
     
     # Process request
-    new_request = BloodRequest(requester_email=current_user.email, request_date=today)
+    new_request = BloodRequest(
+        name=current_user.username.lower(),
+        blood_groups=donation.blood_groups,
+        city=donation.city,
+        requester_email=current_user.email,  
+        donor_email=donation.email,          
+        request_date=today)
+    
     db.session.add(new_request)
     db.session.delete(donation)
     db.session.commit()
