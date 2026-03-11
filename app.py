@@ -53,6 +53,10 @@ class BloodDonation(db.Model):
 class BloodRequest(db.Model):
     """ Model to track blood requests made by users """
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    blood_groups = db.Column(db.String(5), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
     requester_email = db.Column(db.String(120), nullable=False)
     request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
     status = db.Column(db.String(20), nullable=False, default='Pending')
@@ -249,7 +253,21 @@ def all_donations_db():
     pagination = BloodDonation.query.order_by(BloodDonation.id.desc()).paginate(page=page, per_page=10, error_out=False)
     count = BloodDonation.query.count()
     
-    return render_template('blood_db.html', pagination=pagination, all_donations_counter=count)
+    return render_template('donation_db.html', pagination=pagination, all_donations_counter=count)
+
+@app.route("/all_requests_db")
+@login_required
+def all_requests_db():
+    """ Admin only: View all request records paginated """
+    if current_user.role != 'admin':
+        abort(403) 
+        
+    page = request.args.get('page', 1, type=int)
+    # Paginate all records ordered by newest first
+    pagination = BloodRequest.query.order_by(BloodRequest.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    count = BloodRequest.query.count()
+    
+    return render_template('request_db.html', pagination=pagination, all_requests_counter=count)
 
 if __name__ == '__main__':
     with app.app_context():
