@@ -8,7 +8,7 @@
     </div>
 
     <div>
-        <h2 class="info">Total {{all_requests_counter}} donations</h2>
+        <h2 class="info">Total {{all_requests_counter}} Request</h2>
     </div>
 
     <!-- Donations table -->
@@ -16,28 +16,31 @@
         <thead class="table-primary">
             <tr>
                 <th>Name</th>
-                <th>Age</th>
-                <th>Blood Groups</th>
+                <th>Blood Group</th>
                 <th>City</th>
+                <th>Requester Email</th>
+                <th>Donor Email</th>
                 <th>Request Date</th>
-                <th>Email</th>
             </tr>
         </thead>
 
         <tbody>
         {% for blood_request in pagination.items %}
             <tr>
-                <td>{{ blood_request.name[0]|upper}}{{ blood_request.name[1:] }}</td> 
-                <td>{{ blood_request.age }}</td>
+                <td>{{ blood_request.name[0]|upper }}{{ blood_request.name[1:] }}</td>
                 <td>{{ blood_request.blood_groups.upper() }}</td>
-                <td>{{ blood_request.city[0]|upper}}{{ blood_request.city[1:] }}</td>
-                <td>{{ blood_request.latest_donation.strftime('%d /%m /%Y') }}</td>
+                <td>{{ blood_request.city.capitalize() }}</td>
                 <td>
-                    <!-- Mail link -->
-                    <a href="mailto:{{ blood_request.email }}">
-                        {{ blood_request.email }}
+                    <a href="mailto:{{ blood_request.requester_email }}">
+                        {{ blood_request.requester_email }}
                     </a>
                 </td>
+                <td>
+                    <a href="mailto:{{ blood_request.donor_email }}">
+                        {{ blood_request.donor_email }}
+                    </a>
+                </td>
+                <td>{{ blood_request.request_date.strftime('%d /%m /%Y') }}</td>
             </tr>
         {% endfor %}
         </tbody>
