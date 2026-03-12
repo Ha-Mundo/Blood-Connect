@@ -149,16 +149,21 @@ def logout():
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
 def blood_donation():
+    """ Register a new donation or view current pending donation """
+    
+    # Check if the user already has a pending donation
+    active_donation = BloodDonation.query.filter_by(email=current_user.email, status='Pending').first()
+    
     form = DonationForm()
     if request.method == 'GET':
         form.name.data = current_user.username
         form.email.data = current_user.email
     
-    if form.validate_on_submit():
+    # Only process form if there is no active donation
+    if form.validate_on_submit() and not active_donation:
         email = form.email.data.lower()
         today = datetime.date.today()
-        
-        # --- 90 DAYS CHECK ---
+        # 90 days check
         last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
         if last_entry and not is_action_allowed(last_entry.next_donation, today):
             flash("Safety limit: You can only donate once every 90 days.", "danger")
@@ -172,14 +177,32 @@ def blood_donation():
             email=email, 
             latest_donation=today, 
             next_donation=threshold_donation(today),
-            donation_counter=(last_entry.donation_counter + 1 if last_entry else 1)
+            donation_counter=(last_entry.donation_counter + 1 if last_entry else 1),
+            status='Pending' # Explicitly set status
         )
         db.session.add(new_donor)
         db.session.commit()
         flash("Registration successful!", "success")
-        return redirect(url_for('home'))
+        # Redirect back to the same page to show the pending status
+        return redirect(url_for('blood_donation'))
         
-    return render_template('donate.html', form=form)
+    return render_template('donate.html', form=form, active_donation=active_donation)
+
+@app.route("/cancel_donation/<int:id>", methods=['POST'])
+@login_required
+def cancel_donation(id):
+    """ Allow users to cancel their own pending donations """
+    donation = BloodDonation.query.get_or_404(id)
+    
+    # Security check: ensure the user owns this donation and it's pending
+    if donation.email == current_user.email and donation.status == 'Pending':
+        donation.status = 'Cancelled'
+        db.session.commit()
+        flash("Your donation has been cancelled.", "info")
+    else:
+        flash("Action not allowed.", "danger")
+        
+    return redirect(url_for('blood_donation'))
 
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
