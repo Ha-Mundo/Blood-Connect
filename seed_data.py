@@ -3,16 +3,19 @@ import datetime
 
 def seed():
     with app.app_context():
+        # This will only create tables if they don't exist. 
+        # Remember to delete the .db file first to apply 'status' columns!
         db.create_all()
+        
         today = datetime.date.today()
         next_d = today + datetime.timedelta(days=90)
 
-        # 1. User-Test
+        # 1. User-Test (Standard User)
         if not User.query.filter_by(email="test@mail.com").first():
-            pw = bcrypt.generate_password_hash("password123").decode('utf-8')
-            db.session.add(User(username="User-Test", email="test@mail.com", password=pw))
+            pw = bcrypt.generate_password_hash("Password123").decode('utf-8')
+            db.session.add(User(username="User-Test", email="test@mail.com", password=pw, role="user"))
 
-        # 2. Donors sata
+        # 2. Donors data
         donors_data = [
             {"name": "julia", "age": 25, "blood_groups": "a+", "city": "edinburgh", "email": "julia@mail.com"},
             {"name": "michelle", "age": 23, "blood_groups": "0-", "city": "edinburgh", "email": "michelle@mail.com"},
@@ -25,7 +28,7 @@ def seed():
             {"name": "clara", "age": 22, "blood_groups": "0+", "city": "milano", "email": "clara@mail.com"},
             {"name": "robert", "age": 38, "blood_groups": "b-", "city": "edinburgh", "email": "rob@mail.com"},
             {"name": "lisa", "age": 26, "blood_groups": "a+", "city": "brisbane", "email": "lisa@mail.com"},
-            {"name": "ahmed", "age": 30, "blood_groups": "0+", "city": "brisbane", "email": "ahmed@mail.com"},
+            {"name": "kristal", "age": 30, "blood_groups": "0+", "city": "brisbane", "email": "kristal@mail.com"},
             {"name": "sophie", "age": 24, "blood_groups": "ab+", "city": "london", "email": "sophie@mail.com"},
             {"name": "james", "age": 40, "blood_groups": "0-", "city": "london", "email": "james@mail.com"},
             {"name": "yuki", "age": 28, "blood_groups": "b+", "city": "tokyo", "email": "yuki@mail.com"},
@@ -36,11 +39,12 @@ def seed():
             {"name": "tom", "age": 50, "blood_groups": "0-", "city": "edinburgh", "email": "tom@mail.com"}
         ]
 
-        # 3. Seeding loop
+        # 3. Seeding loop with status field
         new_entries = 0
         for data in donors_data:
             if not BloodDonation.query.filter_by(email=data['email']).first():
-                db.session.add(BloodDonation(**data, latest_donation=today, next_donation=next_d))
+                # Explicitly adding status='Pending' for the new database column
+                db.session.add(BloodDonation(**data, latest_donation=today, next_donation=next_d, status='Pending'))
                 new_entries += 1
         
         db.session.commit()
