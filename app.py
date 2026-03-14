@@ -196,7 +196,7 @@ def cancel_donation(id):
     
     # Security check: ensure the user owns this donation and it's pending
     if donation.email == current_user.email and donation.status == 'Pending':
-        donation.status = 'Cancelled'
+        db.session.delete(donation) # we remove the record from the database
         db.session.commit()
         flash("Your donation has been cancelled.", "info")
     else:
@@ -218,7 +218,7 @@ def blood_receive():
         # Get current page number from URL, default is 1
         page = request.args.get('page', 1, type=int)
         
-        # Query with pagination (5 items per page)
+        # Query with pagination (10 items per page)
         pagination = BloodDonation.query.filter_by(
             blood_groups=bg.lower(),
             city=city.lower()
