@@ -1,47 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container request-page mt-5">
+<div class="container mt-5">
 
-    <div class="row justify-content-center">
+    {% if active_request %}
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-warning text-dark text-center">
+                        <h4 class="mb-0">Current Blood Request Status</h4>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <div id="status-view">
+                            <p class="lead mb-1">Status: 
+                                <span class="badge bg-info text-dark">{{ active_request.status.upper() }}</span>
+                            </p>
+                            <p class="text-muted">You requested <strong>{{ active_request.blood_groups.upper() }}</strong> blood in <strong>{{ active_request.city|capitalize }}</strong>.</p>
+                            <p class="text-muted mb-2">Donor Contact: <a href="mailto:{{ active_request.donor_email }}">{{ active_request.donor_email }}</a></p>
+                            <hr>
+                            <p class="small text-secondary">Requested on: {{ active_request.request_date.strftime('%d/%m/%Y') }}</p>
+                            
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-2" onclick="toggleConfirm(true)">
+                                Cancel this request?
+                            </button>
+                        </div>
 
-        <!-- Search card -->
-        <div class="col-md-6 border p-4 bg-white shadow-sm rounded">
-
-            <h1>Find Blood Donors</h1>
-            <p class="text-muted">Search our database for compatible donors in your area.</p>
-
-            <form class="pb-4" action="{{ url_for('blood_receive') }}" method="POST">
-                {{ form.csrf_token }}
-
-                <!-- Blood group field -->
-                <div class="mb-3">
-                    {{ form.blood_groups.label(class="fw-bold") }}
-                    {{ form.blood_groups(class="form-select") }}
+                        <div id="confirm-view" style="display: none;" class="animate__animated animate__fadeIn">
+                            <p class="text-danger fw-bold">Are you absolutely sure?</p>
+                            <p class="small text-muted">This will release the blood back to the available pool.</p>
+                            
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <form action="{{ url_for('cancel_request', id=active_request.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger">Yes, Cancel it</button>
+                                </form>
+                                <button type="button" class="btn btn-light" onclick="toggleConfirm(false)">No, keep it</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- City field -->
-                <div class="mb-3">
-                    {{ form.city.label(class="fw-bold") }}
-                    {{ form.city(class="form-control", placeholder="Enter city name") }}
+                <div class="text-end mt-4">
+                    <a class="btn btn-outline-secondary btn-sm" href="/">← Back</a>
                 </div>
-
-                <!-- Submit button -->
-                <div class="mt-4">
-                    {{ form.submit(class="btn btn-danger w-100 mt-3 shadow") }}
-                </div>
-
-            </form>
-
-            <!-- Back button -->
-            <div class="text-end mt-4">
-                <a class="btn btn-outline-secondary" href="/">Back</a>
             </div>
-
         </div>
-
-    </div>
-
+    {% else %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="border p-4 shadow-sm bg-light rounded">
+                        <h2 class="p-4">Find Blood Donors</h2>
+                    
+                    <div class="card-body p-4">
+                        <form method="POST" action="">
+                            {{ form.hidden_tag() }}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Blood Group</label>
+                                    {{ form.blood_groups(class="form-select") }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">City</label>
+                                    {{ form.city(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                {{ form.submit(class="btn btn-danger btn-lg", value="Search Donors") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="text-end mt-4">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="history.back()">
+                        ← Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
+
+<script>
+        function toggleConfirm(show) {
+            document.getElementById('status-view').style.display = show ? 'none' : 'block';
+            document.getElementById('confirm-view').style.display = show ? 'block' : 'none';
+        }
+</script>
 
 {% endblock %}

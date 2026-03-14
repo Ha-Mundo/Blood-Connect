@@ -207,69 +207,110 @@ def cancel_donation(id):
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
 def blood_receive():
-    """ Search for donors based on blood group and city with pagination """
+    """ Search for donors or view current pending request """
+    
+    # 1. Check if the user already has a pending request
+    active_request = BloodRequest.query.filter_by(requester_email=current_user.email, status='Pending').first()
+    
     form = RequestForm()
     
-    # Get parameters from POST (initial search) or GET (pagination links)
+    # If there's an active request, skip the search logic and render the status page
+    if active_request:
+        return render_template('find_blood.html', form=form, active_request=active_request)
+
+    # 2. Search logic (only runs if NO active requests)
     city = request.form.get('city') or request.args.get('city')
     bg = request.form.get('blood_groups') or request.args.get('bg')
     
     if city and bg:
-        # Get current page number from URL, default is 1
         page = request.args.get('page', 1, type=int)
         
-        # Query with pagination (10 items per page)
+        # CRITICAL FIX: Only search for donations that are 'Pending' (available)
         pagination = BloodDonation.query.filter_by(
             blood_groups=bg.lower(),
-            city=city.lower()
+            city=city.lower(),
+            status='Pending' 
         ).paginate(page=page, per_page=10, error_out=False)
         
         if not pagination.items:
             return render_template('empty_db.html')
             
-        return render_template('results.html', 
-                               pagination=pagination, 
-                               city=city, 
-                               bg=bg)
+        return render_template('results.html', pagination=pagination, city=city, bg=bg)
                                
-    return render_template('find_blood.html', form=form)
+    return render_template('find_blood.html', form=form, active_request=None)
+
+@app.route("/cancel_request/<int:id>", methods=['POST'])
+@login_required
+def cancel_request(id):
+    """ Hard delete the request and free up the claimed donation """
+    blood_req = BloodRequest.query.get_or_404(id)
+    
+    if blood_req.requester_email == current_user.email and blood_req.status == 'Pending':
+        
+        # 1. Find the claimed donation and make it available again
+        # Note: Since BloodRequest doesn't have a donation_id foreign key, 
+        # we match by donor email and blood group to find the reserved blood.
+        donation = BloodDonation.query.filter_by(
+            email=blood_req.donor_email, 
+            blood_groups=blood_req.blood_groups,
+            status='Claimed'
+        ).first()
+        
+        if donation:
+            donation.status = 'Pending'
+            
+        # 2. Hard delete the request to reset the 7-day limit
+        db.session.delete(blood_req)
+        db.session.commit()
+        
+        flash("Blood request cancelled. The donation is now available for others.", "info")
+    else:
+        flash("Action not allowed.", "danger")
+        
+    return redirect(url_for('blood_receive'))
 
 @app.route("/take_donation", methods=['POST'])
 @login_required
 def take_donation():
+    """ Process a blood request and change donation status instead of deleting """
     donation_id = request.form.get('id')
     donation = BloodDonation.query.get_or_404(donation_id)
     today = datetime.date.today()
 
-    # --- PREVENT SELF-REQUEST ---
+    # Prevent self-request
     if donation.email == current_user.email:
         flash("You cannot request your own donation!", "warning")
         return redirect(url_for('home'))
 
-    # --- 7 DAYS REQUEST LIMIT ---
+    # 7 days request limit check
     last_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
     if last_request:
-        # We calculate the allowed date for the next request
         allowed_date = threshold_request(last_request.request_date)
         if not is_action_allowed(allowed_date, today):
             flash("Safety limit: You can only make one request every 7 days.", "danger")
             return redirect(url_for('home'))
     
-    # Process request
+    # Create the new request with 'Pending' status
     new_request = BloodRequest(
         name=current_user.username.lower(),
         blood_groups=donation.blood_groups,
         city=donation.city,
         requester_email=current_user.email,  
         donor_email=donation.email,          
-        request_date=today)
+        request_date=today,
+        status='Pending'
+    )
     
     db.session.add(new_request)
-    db.session.delete(donation)
+    
+    # CRITICAL FIX: Do NOT use db.session.delete(donation)
+    # Update the status to 'Claimed' so it hides from search but stays in DB
+    donation.status = 'Claimed'
+    
     db.session.commit()
     
-    flash(f"Request successful! Notification sent.", "success")
-    return redirect(url_for('home'))
+    flash("Request successful! Notification sent.", "success")
+    return redirect(url_for('blood_receive'))
 
 @app.route("/all_donations_db")
 @login_required
