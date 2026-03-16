@@ -20,10 +20,25 @@
                             <hr>
                             <p class="small text-secondary">Requested on: {{ active_request.request_date.strftime('%d/%m/%Y') }}</p>
                             
-                            <button type="button" class="btn btn-outline-danger btn-sm mt-2" onclick="toggleConfirm(true)">
-                                Cancel this request?
-                            </button>
-                        </div>
+                            {% if active_request.status == 'Pending' %}
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-2" onclick="toggleConfirm(true)">
+                                    Cancel this request?
+                                </button>
+                                
+                            {% elif active_request.status in ['Cancelled', 'Unsuccessful'] %}
+                                <div class="alert alert-warning py-2 mt-2 mb-3">
+                                    <strong>Notice:</strong> Your blood request was marked as {{ active_request.status }}.
+                                </div>
+                                <a href="{{ url_for('blood_receive', new='1') }}" class="btn btn-primary btn-sm mt-1">
+                                    Make a new request
+                                </a>
+                                
+                            {% elif active_request.status == 'Approved' %}
+                                <div class="alert alert-success py-2 mt-2 mb-0">
+                                    <i class="bi bi-check-circle"></i> Your request is Approved and active. We are searching for donors.
+                                </div>
+                            {% endif %}
+                            </div>
 
                         <div id="confirm-view" style="display: none;" class="animate__animated animate__fadeIn">
                             <p class="text-danger fw-bold">Are you absolutely sure?</p>
