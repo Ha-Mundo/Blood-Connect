@@ -31,7 +31,7 @@
                             <strong>{{ active_donation.city|capitalize }}</strong>.
                         </p>
 
-                        <hr>
+                       <hr>
 
                         {% if active_donation.status == 'Pending' %}
                             <button
@@ -40,6 +40,15 @@
                                 onclick="toggleConfirm(true)">
                                 Cancel this donation?
                             </button>
+                            
+                        {% elif active_donation.status in ['Cancelled', 'Unsuccessful'] %}
+                            <div class="alert alert-warning py-2 mt-2 mb-3">
+                                <strong>Notice:</strong> Your previous request was marked as {{ active_donation.status }}.
+                            </div>
+                            <a href="{{ url_for('blood_donation', new='1') }}" class="btn btn-primary btn-sm mt-1">
+                                Make a new donation attempt
+                            </a>
+                            
                         {% else %}
                             <p class="small text-muted mb-0">
                                 You can make a new donation request after: 

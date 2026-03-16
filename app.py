@@ -151,14 +151,18 @@ def logout():
 def blood_donation():
     """ Register a new donation or view current donation status """
     today = datetime.date.today()
-    
-    # Get the user's most recent donation record
     latest_donation = BloodDonation.query.filter_by(email=current_user.email).order_by(BloodDonation.id.desc()).first()
     
+    # Check if user explicitly clicked 'Make a new donation attempt'
+    force_form = request.args.get('new') == '1'
     active_donation = None
-    if latest_donation:
-        # Show status view IF donation is ongoing OR if the 90-day cooldown is not yet passed
-        if latest_donation.status in ['Pending', 'Claimed'] or not is_action_allowed(latest_donation.next_donation, today):
+    
+    if latest_donation and not force_form:
+        # Show status for ongoing, cancelled, or unsuccessful donations
+        if latest_donation.status in ['Pending', 'Claimed', 'Cancelled', 'Unsuccessful']:
+            active_donation = latest_donation
+        # Enforce cooldown ONLY if the previous one was successfully completed
+        elif latest_donation.status == 'Approved' and not is_action_allowed(latest_donation.next_donation, today):
             active_donation = latest_donation
 
     form = DonationForm()
@@ -166,13 +170,12 @@ def blood_donation():
         form.name.data = current_user.username
         form.email.data = current_user.email
     
-    # Only process form if there is no active_donation blocking the UI
     if form.validate_on_submit() and not active_donation:
         email = form.email.data.lower()
         
-        # Fallback security check
-        if latest_donation and not is_action_allowed(latest_donation.next_donation, today):
-            flash("Safety limit: You can only donate once every 90 days.", "danger")
+        # Double-check cooldown for Approved donations at the logic level
+        if latest_donation and latest_donation.status == 'Approved' and not is_action_allowed(latest_donation.next_donation, today):
+            flash("Safety limit: You can only donate once every 90 days after a successful donation.", "danger")
             return redirect(url_for('blood_donation'))
 
         new_donor = BloodDonation(
