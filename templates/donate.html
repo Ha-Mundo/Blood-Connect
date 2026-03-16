@@ -33,12 +33,19 @@
 
                         <hr>
 
-                        <button
-                            type="button"
-                            class="btn btn-danger btn-sm mt-2"
-                            onclick="toggleConfirm(true)">
-                            Cancel this donation?
-                        </button>
+                        {% if active_donation.status == 'Pending' %}
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm mt-2"
+                                onclick="toggleConfirm(true)">
+                                Cancel this donation?
+                            </button>
+                        {% else %}
+                            <p class="small text-muted mb-0">
+                                You can make a new donation request after: 
+                                <strong>{{ active_donation.next_donation.strftime('%d/%m/%Y') }}</strong>
+                            </p>
+                        {% endif %}
 
                     </div>
 

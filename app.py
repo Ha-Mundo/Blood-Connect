@@ -149,23 +149,29 @@ def logout():
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
 def blood_donation():
-    """ Register a new donation or view current pending donation """
+    """ Register a new donation or view current donation status """
+    today = datetime.date.today()
     
-    # Check if the user already has a pending donation
-    active_donation = BloodDonation.query.filter_by(email=current_user.email, status='Pending').first()
+    # Get the user's most recent donation record
+    latest_donation = BloodDonation.query.filter_by(email=current_user.email).order_by(BloodDonation.id.desc()).first()
     
+    active_donation = None
+    if latest_donation:
+        # Show status view IF donation is ongoing OR if the 90-day cooldown is not yet passed
+        if latest_donation.status in ['Pending', 'Claimed'] or not is_action_allowed(latest_donation.next_donation, today):
+            active_donation = latest_donation
+
     form = DonationForm()
     if request.method == 'GET':
         form.name.data = current_user.username
         form.email.data = current_user.email
     
-    # Only process form if there is no active donation
+    # Only process form if there is no active_donation blocking the UI
     if form.validate_on_submit() and not active_donation:
         email = form.email.data.lower()
-        today = datetime.date.today()
-        # 90 days check
-        last_entry = BloodDonation.query.filter_by(email=email).order_by(BloodDonation.id.desc()).first()
-        if last_entry and not is_action_allowed(last_entry.next_donation, today):
+        
+        # Fallback security check
+        if latest_donation and not is_action_allowed(latest_donation.next_donation, today):
             flash("Safety limit: You can only donate once every 90 days.", "danger")
             return redirect(url_for('blood_donation'))
 
@@ -177,13 +183,12 @@ def blood_donation():
             email=email, 
             latest_donation=today, 
             next_donation=threshold_donation(today),
-            donation_counter=(last_entry.donation_counter + 1 if last_entry else 1),
-            status='Pending' # Explicitly set status
+            donation_counter=(latest_donation.donation_counter + 1 if latest_donation else 1),
+            status='Pending'
         )
         db.session.add(new_donor)
         db.session.commit()
         flash("Registration successful!", "success")
-        # Redirect back to the same page to show the pending status
         return redirect(url_for('blood_donation'))
         
     return render_template('donate.html', form=form, active_donation=active_donation)
@@ -339,6 +344,28 @@ def all_requests_db():
     count = BloodRequest.query.count()
     
     return render_template('request_db.html', pagination=pagination, all_requests_counter=count)
+
+@app.route("/update_donation_status/<int:id>", methods=['POST'])
+@login_required
+def update_donation_status(id):
+    """ Admin only: Update the status of a blood donation """
+    if current_user.role != 'admin':
+        abort(403)
+        
+    donation = BloodDonation.query.get_or_404(id)
+    new_status = request.form.get('new_status')
+    
+    # Validation of allowed statuses
+    allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Claimed']
+    
+    if new_status in allowed_statuses:
+        donation.status = new_status
+        db.session.commit()
+        flash(f"Donation #{id} updated to {new_status}.", "success")
+    else:
+        flash("Invalid status update.", "danger")
+        
+    return redirect(url_for('all_donations_db'))
 
 if __name__ == '__main__':
     with app.app_context():
