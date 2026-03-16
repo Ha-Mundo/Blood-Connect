@@ -11,7 +11,7 @@
             <!-- Login/Register buttons -->
             <div class="col-lg-12">
                 <a class="btn btn-primary btn-lg me-2" href="{{ url_for('login') }}">
-                    Login to Access System
+                    Login 
                 </a>
 
                 <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('register') }}">
@@ -20,7 +20,8 @@
             </div>
 
         {% else %}
-
+        
+        {% if current_user.role == 'user' %}
             <!-- Donate blood -->
             <div class="col-lg-4 col-md-6">
                 <a class="btn-d icon-box d-block p-3" href="/blood_donation">
@@ -46,6 +47,7 @@
 
                 </a>
             </div>
+            {% endif %}
 
             {% if current_user.role == 'admin' %}
 
@@ -55,15 +57,28 @@
                    href="/all_donations_db"
                    style="background-color:#f8d7da;">
 
-                    <img src="/static/db-icon.png" class="b-icons">
+                    <img src="/static/blood-donation-db.png" class="b-icons">
 
                     <h2 class="mt-2">
-                        Admin DB
+                        Donations DB
                     </h2>
 
                 </a>
             </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <a class="btn-admin icon-box d-block p-3"
+                   href="/all_requests_db"
+                   style="background-color:#f8d7da;">
 
+                    <img src="/static/find-blood-donation.png" class="b-icons">
+
+                    <h2 class="mt-2">
+                        Requests DB
+                    </h2>
+
+                </a>
+            </div>
             {% endif %}
 
         {% endif %}
