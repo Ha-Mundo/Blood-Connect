@@ -1,82 +1,99 @@
 {% extends "base.html" %}
 {% block content %}
-
-<div class="container text-center">
-
-    <div class="py-5 mb-4 bg-light rounded-3">
-        <h1>Blood Request Database</h1>
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🏥 Blood Requests Database</h2>
+        <span class="badge bg-danger fs-5">Total Requests: {{ all_requests_counter }}</span>
     </div>
 
-    <div>
-        <h2 class="info">Total {{all_requests_counter}} Request</h2>
-    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Requester / Patient</th>
+                            <th>Blood Required</th>
+                            <th>City</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pagination.items %}
+                        <tr>
+                            <td>#{{ req.id }}</td>
+                            <td>
+                                <div class="fw-bold text-capitalize">{{ req.patient_name }}</div>
+                                <small class="text-muted">{{ req.requester_email }}</small>
+                            </td>
+                            <td><span class="badge bg-danger">{{ req.blood_groups.upper() }}</span></td>
+                            <td class="text-capitalize">{{ req.city }}</td>
+                            <td>{{ req.request_date.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if req.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif req.status == 'Approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif req.status == 'Fulfilled' %}
+                                    <span class="badge bg-info text-dark">Fulfilled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <form action="{{ url_for('update_request_status', id=req.id) }}" method="POST" class="m-0">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        
+                                        <button name="new_status" value="Approved" class="btn btn-outline-success btn-sm" title="Approve">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+                                        
+                                        <button name="new_status" value="Unsuccessful" class="btn btn-outline-secondary btn-sm" title="Mark Unsuccessful">
+                                            Reject
+                                        </button>
 
-    <!-- Donations table -->
-    <table class="table table-striped" style="width:100%; padding-top:50px;">
-        <thead class="table-primary">
-            <tr>
-                <th>Name</th>
-                <th>Blood Group</th>
-                <th>City</th>
-                <th>Requester Email</th>
-                <th>Donor Email</th>
-                <th>Request Date</th>
-            </tr>
-        </thead>
+                                        <button name="new_status" value="Cancelled" class="btn btn-outline-danger btn-sm" title="Cancel">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <tbody>
-        {% for blood_request in pagination.items %}
-            <tr>
-                <td>{{ blood_request.name[0]|upper }}{{ blood_request.name[1:] }}</td>
-                <td>{{ blood_request.blood_groups.upper() }}</td>
-                <td>{{ blood_request.city.capitalize() }}</td>
-                <td>
-                    <a href="mailto:{{ blood_request.requester_email }}">
-                        {{ blood_request.requester_email }}
-                    </a>
-                </td>
-                <td>
-                    <a href="mailto:{{ blood_request.donor_email }}">
-                        {{ blood_request.donor_email }}
-                    </a>
-                </td>
-                <td>{{ blood_request.request_date.strftime('%d /%m /%Y') }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-
-    </table>
-
-    <!-- Pagination -->
-     <nav aria-label="Admin database pages" class="mt-4">
-        <ul class="pagination d-flex justify-content-center align-items-center gap-2">
-            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('all_requests_db', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
-            </li>
-            
-            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-                {% if page_num %}
-                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a class="page-link rounded" href="{{ url_for('all_requests_db', page=page_num) }}">{{ page_num }}</a>
+            <nav aria-label="Admin database pages" class="mt-4">
+                <ul class="pagination d-flex justify-content-center align-items-center gap-2">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link rounded" href="{{ url_for('all_requests_db', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
                     </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                {% endif %}
-            {% endfor %}
-            
-            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('all_requests_db', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
-            </li>
-        </ul>
-    </nav>
+                    
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link rounded" href="{{ url_for('all_requests_db', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link rounded" href="{{ url_for('all_requests_db', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
 
-    <!-- Back button -->
-    <div class="text-end">
-        <a class="btn btn-secondary icon-box" href="/">
-            Back
-        </a>
+            <div class="text-end mt-3">
+                <a class="btn btn-secondary" href="/">Back</a>
+            </div>
+        </div>
     </div>
-
 </div>
-
 {% endblock %}

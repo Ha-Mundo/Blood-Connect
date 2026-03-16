@@ -334,20 +334,6 @@ def all_donations_db():
     
     return render_template('donation_db.html', pagination=pagination, all_donations_counter=count)
 
-@app.route("/all_requests_db")
-@login_required
-def all_requests_db():
-    """ Admin only: View all request records paginated """
-    if current_user.role != 'admin':
-        abort(403) 
-        
-    page = request.args.get('page', 1, type=int)
-    # Paginate all records ordered by newest first
-    pagination = BloodRequest.query.order_by(BloodRequest.id.desc()).paginate(page=page, per_page=10, error_out=False)
-    count = BloodRequest.query.count()
-    
-    return render_template('request_db.html', pagination=pagination, all_requests_counter=count)
-
 @app.route("/update_donation_status/<int:id>", methods=['POST'])
 @login_required
 def update_donation_status(id):
@@ -369,6 +355,44 @@ def update_donation_status(id):
         flash("Invalid status update.", "danger")
         
     return redirect(url_for('all_donations_db'))
+
+@app.route("/all_requests_db")
+@login_required
+def all_requests_db():
+    """ Admin only: View all request records paginated """
+    if current_user.role != 'admin':
+        abort(403) 
+        
+    page = request.args.get('page', 1, type=int)
+    # Paginate all records ordered by newest first
+    pagination = BloodRequest.query.order_by(BloodRequest.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    count = BloodRequest.query.count()
+    
+    return render_template('request_db.html', pagination=pagination, all_requests_counter=count)
+
+@app.route("/update_request_status/<int:id>", methods=['POST'])
+@login_required
+def update_request_status(id):
+    """ Admin only: Update the status of a blood request """
+    if current_user.role != 'admin':
+        abort(403)
+        
+    blood_req = BloodRequest.query.get_or_404(id)
+    new_status = request.form.get('new_status')
+    
+    # Validation of allowed statuses (adjusted for requests)
+    allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Fulfilled']
+    
+    if new_status in allowed_statuses:
+        blood_req.status = new_status
+        db.session.commit()
+        flash(f"Blood Request #{id} updated to {new_status}.", "success")
+    else:
+        flash("Invalid status update.", "danger")
+        
+    return redirect(url_for('all_requests_db'))
+
+
 
 if __name__ == '__main__':
     with app.app_context():
