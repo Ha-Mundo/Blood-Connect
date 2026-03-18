@@ -259,14 +259,12 @@ def blood_receive():
 @app.route("/cancel_request/<int:id>", methods=['POST'])
 @login_required
 def cancel_request(id):
-    """ Hard delete the request and free up the claimed donation """
+    """ Soft cancel the request and free up the claimed donation """
     blood_req = BloodRequest.query.get_or_404(id)
     
     if blood_req.requester_email == current_user.email and blood_req.status == 'Pending':
         
         # 1. Find the claimed donation and make it available again
-        # Note: Since BloodRequest doesn't have a donation_id foreign key, 
-        # we match by donor email and blood group to find the reserved blood.
         donation = BloodDonation.query.filter_by(
             email=blood_req.donor_email, 
             blood_groups=blood_req.blood_groups,
@@ -276,8 +274,8 @@ def cancel_request(id):
         if donation:
             donation.status = 'Pending'
             
-        # 2. Hard delete the request to reset the 7-day limit
-        db.session.delete(blood_req)
+        # 2. Soft Delete we update the status to cancelled
+        blood_req.status = 'Cancelled'
         db.session.commit()
         
         flash("Blood request cancelled. The donation is now available for others.", "info")
@@ -298,7 +296,7 @@ def take_donation():
         flash("You cannot request your own donation!", "warning")
         return redirect(url_for('home'))
 
-    # CRITICAL FIX: Applica il limite SOLO se l'ultima richiesta è attiva o andata a buon fine
+    # Apply limit ONLY if last request is active or successful
     last_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
     if last_request and last_request.status in ['Pending', 'Approved', 'Fulfilled']:
         allowed_date = threshold_request(last_request.request_date)
@@ -385,7 +383,7 @@ def update_request_status(id):
     allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Fulfilled']
     
     if new_status in allowed_statuses:
-        # ROLLBACK LOGIC: Se la richiesta fallisce, libera il sangue bloccato
+        # ROLLBACK LOGIC: If the request fails, release the blocked blood
         if new_status in ['Cancelled', 'Unsuccessful']:
             donation = BloodDonation.query.filter_by(
                 email=blood_req.donor_email, 
