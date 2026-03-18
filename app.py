@@ -217,12 +217,21 @@ def cancel_donation(id):
 def blood_receive():
     """ Search for donors or view current pending request """
     
-    # 1. Check if the user already has a pending request
-    active_request = BloodRequest.query.filter_by(requester_email=current_user.email, status='Pending').first()
+    # 1. Fetch the user's most recent request
+    latest_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
     
+    force_form = request.args.get('new') == '1'
+    active_request = None
+    
+    if latest_request and not force_form:
+        # Show status view for ongoing or failed requests. 
+        # If 'Fulfilled', active_request remains None so the form resets automatically.
+        if latest_request.status in ['Pending', 'Approved', 'Cancelled', 'Unsuccessful']:
+            active_request = latest_request
+            
     form = RequestForm()
     
-    # If there's an active request, skip the search logic and render the status page
+    # If there's an active request blocking the UI, render the status view immediately
     if active_request:
         return render_template('find_blood.html', form=form, active_request=active_request)
 
@@ -285,20 +294,18 @@ def take_donation():
     donation = BloodDonation.query.get_or_404(donation_id)
     today = datetime.date.today()
 
-    # Prevent self-request
     if donation.email == current_user.email:
         flash("You cannot request your own donation!", "warning")
         return redirect(url_for('home'))
 
-    # 7 days request limit check
+    # CRITICAL FIX: Applica il limite SOLO se l'ultima richiesta è attiva o andata a buon fine
     last_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
-    if last_request:
+    if last_request and last_request.status in ['Pending', 'Approved', 'Fulfilled']:
         allowed_date = threshold_request(last_request.request_date)
         if not is_action_allowed(allowed_date, today):
             flash("Safety limit: You can only make one request every 7 days.", "danger")
             return redirect(url_for('home'))
     
-    # Create the new request with 'Pending' status
     new_request = BloodRequest(
         name=current_user.username.lower(),
         blood_groups=donation.blood_groups,
@@ -310,11 +317,7 @@ def take_donation():
     )
     
     db.session.add(new_request)
-    
-    # CRITICAL FIX: Do NOT use db.session.delete(donation)
-    # Update the status to 'Claimed' so it hides from search but stays in DB
     donation.status = 'Claimed'
-    
     db.session.commit()
     
     flash("Request successful! Notification sent.", "success")
@@ -373,17 +376,26 @@ def all_requests_db():
 @app.route("/update_request_status/<int:id>", methods=['POST'])
 @login_required
 def update_request_status(id):
-    """ Admin only: Update the status of a blood request """
+    """ Admin only: Update the status of a blood request and handle rollbacks """
     if current_user.role != 'admin':
         abort(403)
         
     blood_req = BloodRequest.query.get_or_404(id)
     new_status = request.form.get('new_status')
-    
-    # Validation of allowed statuses (adjusted for requests)
     allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Fulfilled']
     
     if new_status in allowed_statuses:
+        # ROLLBACK LOGIC: Se la richiesta fallisce, libera il sangue bloccato
+        if new_status in ['Cancelled', 'Unsuccessful']:
+            donation = BloodDonation.query.filter_by(
+                email=blood_req.donor_email, 
+                blood_groups=blood_req.blood_groups,
+                status='Claimed'
+            ).first()
+            
+            if donation:
+                donation.status = 'Pending'
+
         blood_req.status = new_status
         db.session.commit()
         flash(f"Blood Request #{id} updated to {new_status}.", "success")
@@ -391,8 +403,6 @@ def update_request_status(id):
         flash("Invalid status update.", "danger")
         
     return redirect(url_for('all_requests_db'))
-
-
 
 if __name__ == '__main__':
     with app.app_context():
