@@ -25,7 +25,7 @@
                                     Cancel this request?
                                 </button>
                                 
-                            {% elif active_request.status in ['Cancelled', 'Unsuccessful'] %}
+                            {% elif active_request.status == 'Unsuccessful' %}
                                 <div class="alert alert-warning py-2 mt-2 mb-3">
                                     <strong>Notice:</strong> Your blood request was marked as {{ active_request.status }}.
                                 </div>
