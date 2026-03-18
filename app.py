@@ -225,8 +225,8 @@ def blood_receive():
     
     if latest_request and not force_form:
         # Show status view for ongoing or failed requests. 
-        # If 'Fulfilled', active_request remains None so the form resets automatically.
-        if latest_request.status in ['Pending', 'Approved', 'Cancelled', 'Unsuccessful']:
+        # If 'Fulfilled' / 'Cancelled', active_request remains None so the form resets automatically.
+        if latest_request.status in ['Pending', 'Approved', 'Unsuccessful']:
             active_request = latest_request
             
     form = RequestForm()
