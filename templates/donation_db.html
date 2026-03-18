@@ -35,10 +35,12 @@
                             <td>
                                 {% if donation.status == 'Pending' %}
                                     <span class="badge bg-warning text-dark">Pending</span>
-                                {% elif donation.status == 'Approved' %}
-                                    <span class="badge bg-success">Approved</span>
                                 {% elif donation.status == 'Claimed' %}
                                     <span class="badge bg-info text-dark">Claimed</span>
+                                {% elif donation.status == 'Approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif donation.status == 'Completed' %}
+                                    <span class="badge bg-primary">Completed</span>
                                 {% else %}
                                     <span class="badge bg-secondary">{{ donation.status }}</span>
                                 {% endif %}
@@ -47,6 +49,10 @@
                                 <div class="d-flex justify-content-center gap-1">
                                     <form action="{{ url_for('update_donation_status', id=donation.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                        <button name="new_status" value="Completed" class="btn btn-primary btn-sm" title="Mark Completed">
+                                            <i class="bi bi-flag-fill"></i> Complete
+                                        </button>
                                         
                                         <button name="new_status" value="Approved" class="btn btn-outline-success btn-sm" title="Approve">
                                             <i class="bi bi-check-circle"></i> Approve

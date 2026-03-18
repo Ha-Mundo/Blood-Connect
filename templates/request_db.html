@@ -26,7 +26,7 @@
                         <tr>
                             <td>#{{ req.id }}</td>
                             <td>
-                                <div class="fw-bold text-capitalize">{{ req.patient_name }}</div>
+                                <div class="fw-bold text-capitalize">{{ req.name }}</div>
                                 <small class="text-muted">{{ req.requester_email }}</small>
                             </td>
                             <td><span class="badge bg-danger">{{ req.blood_groups.upper() }}</span></td>
@@ -37,8 +37,8 @@
                                     <span class="badge bg-warning text-dark">Pending</span>
                                 {% elif req.status == 'Approved' %}
                                     <span class="badge bg-success">Approved</span>
-                                {% elif req.status == 'Fulfilled' %}
-                                    <span class="badge bg-info text-dark">Fulfilled</span>
+                                {% elif req.status == 'Completed' %}
+                                    <span class="badge bg-primary">Completed</span>
                                 {% else %}
                                     <span class="badge bg-secondary">{{ req.status }}</span>
                                 {% endif %}
@@ -48,9 +48,14 @@
                                     <form action="{{ url_for('update_request_status', id=req.id) }}" method="POST" class="m-0">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         
+                                        <button name="new_status" value="Completed" class="btn btn-primary btn-sm" title="Mark Completed">
+                                            <i class="bi bi-flag-fill"></i> Complete
+                                        </button>
+                                        
                                         <button name="new_status" value="Approved" class="btn btn-outline-success btn-sm" title="Approve">
                                             <i class="bi bi-check-circle"></i> Approve
                                         </button>
+
                                         
                                         <button name="new_status" value="Unsuccessful" class="btn btn-outline-secondary btn-sm" title="Mark Unsuccessful">
                                             Reject
