@@ -12,7 +12,7 @@ from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 
 # Local imports
-from forms import DonationForm, RequestForm, RegistrationForm, LoginForm
+from forms import DonationForm, RequestForm, RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from time_limit import threshold_donation, threshold_request, is_action_allowed
 
 # 1. INITIALIZATION & CONFIG
@@ -209,6 +209,59 @@ def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for('home'))
+
+# --- PASSWORD RESET ROUTES ---
+@app.route("/reset_password_request", methods=['GET', 'POST'])
+def reset_password_request():
+    """ Route to request a password reset link """
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        if user:
+            # Generate token and send email
+            token = generate_confirmation_token(user.email)
+            reset_url = url_for('reset_token', token=token, _external=True)
+            msg = Message("Password Reset Request", 
+                          sender=app.config['MAIL_DEFAULT_SENDER'], 
+                          recipients=[user.email])
+            msg.body = f"To reset your password, visit the following link: {reset_url}\nIf you did not make this request, ignore this email."
+            mail.send(msg)
+            
+        # Flash the same message regardless of email existence for security (don't reveal users)
+        flash("An email has been sent with instructions to reset your password.", "info")
+        return redirect(url_for('login'))
+        
+    return render_template('reset_request.html', form=form)
+
+@app.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    """ Route to update password via valid token """
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
+    try:
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        # Token expires after 30 minutes (1800 seconds)
+        email = serializer.loads(token, salt='email-confirm-salt', max_age=1800)
+    except:
+        flash("The reset link is invalid or has expired.", "danger")
+        return redirect(url_for('reset_password_request'))
+        
+    user = User.query.filter_by(email=email).first_or_404()
+    form = ResetPasswordForm()
+    
+    if form.validate_on_submit():
+        # Hash the new password and update user record
+        hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_pw
+        db.session.commit()
+        flash("Your password has been updated! You can now log in.", "success")
+        return redirect(url_for('login'))
+        
+    return render_template('reset_token.html', form=form)
 
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
