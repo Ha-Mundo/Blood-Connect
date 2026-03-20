@@ -7,6 +7,8 @@ from flask_login import LoginManager, UserMixin, login_user, current_user, logou
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 
 # Local imports
@@ -45,6 +47,14 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
+# Initialize Flask-Limiter (using memory storage for simplicity)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
 # 2. MODELS
 class User(db.Model, UserMixin):
     """ User model for both Admins and regular Donors/Receivers """
@@ -78,6 +88,13 @@ class BloodRequest(db.Model):
     donor_email = db.Column(db.String(120), nullable=False)     
     request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
     status = db.Column(db.String(20), nullable=False, default='Pending')
+    
+# Handle the 429 error gracefully so the user sees a Bootstrap flash message
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """ Handle rate limit exceeded errors """
+    flash(f"Too many requests. {e.description}", "danger")
+    return redirect(url_for('login'))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -106,6 +123,7 @@ def home():
     return render_template('index.html')
 
 @app.route("/login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Limit login attempts to 5 per minute per IP
 def login():
     """ Handle user login with secure password verification """
     if current_user.is_authenticated:
@@ -155,7 +173,7 @@ def register():
         token = generate_confirmation_token(user.email)
         confirm_url = url_for('confirm_email', token=token, _external=True)
         html_body = f"<p>Welcome! Click here to confirm your account: <a href='{confirm_url}'>Confirm Email</a></p>"
-        msg = Message("Confirm your account", sender="noreply@tuoapp.com", recipients=[user.email])
+        msg = Message("Confirm your account", sender=("Blood Donation System", "test@mail.com"), recipients=[user.email])
         msg.html = html_body
         mail.send(msg)
 
