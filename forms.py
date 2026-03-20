@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, IntegerField, SelectField
-from wtforms.validators import DataRequired, Email, Length
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Regexp
 
 # English: Predefined list for the dropdown menus
 BLOOD_CHOICES = [
@@ -14,8 +14,18 @@ class RegistrationForm(FlaskForm):
     """ Form for new user registration """
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Sign Up')
+    password = PasswordField('Password', validators=[
+        DataRequired(), 
+        Length(min=8, message="Password must be at least 8 characters long."),
+        # Add Regexp validator for complexity
+        Regexp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$', 
+               message="Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.")
+    ])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(), 
+        EqualTo('password', message='Passwords must match. Please try again.')
+    ])
+    submit = SubmitField('Sign in')
 
 class LoginForm(FlaskForm):
     """ Form for user login using Email """
