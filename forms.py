@@ -49,3 +49,22 @@ class RequestForm(FlaskForm):
     blood_groups = SelectField('Blood Group', choices=BLOOD_CHOICES, validators=[DataRequired()])
     city = StringField('City', validators=[DataRequired()])
     submit = SubmitField('Search Donors')
+    
+class ForgotPasswordForm(FlaskForm):
+    # Form to request password reset
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class ResetPasswordForm(FlaskForm):
+    # Form to enter new password
+    password = PasswordField('New Password', validators=[
+        DataRequired(), 
+        Length(min=8),
+        Regexp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$', 
+               message="Password must contain uppercase, lowercase, number, and special character.")
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        DataRequired(), 
+        EqualTo('password', message='Passwords must match.')
+    ])
+    submit = SubmitField('Reset Password')
