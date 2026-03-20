@@ -40,7 +40,7 @@
                  style="width: 28px; height: 28px; cursor: pointer;" 
                  data-bs-toggle="tooltip" 
                  data-bs-placement="bottom" 
-                 title="Donazioni: {{ user_stats.donations }} | Richieste: {{ user_stats.requests }}">
+                 title="{% if current_user.role == 'admin' %}Super User Administrator{% else %}Blood Donations: {{ user_stats.donations }} | Blood Requests: {{ user_stats.requests }}{% endif %}">
 
             <span class="me-3"><strong>{{ current_user.username }}</strong>!</span>
             <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
