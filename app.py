@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
 
 # Local imports
@@ -20,6 +22,21 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-very-unsafe')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'instance', 'BloodDonationSystem.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Mail configuration for Mailpit (local testing)
+app.config['MAIL_SERVER'] = 'localhost'      # Mailpit runs locally
+app.config['MAIL_PORT'] = 1025               # default Mailpit SMTP port
+app.config['MAIL_USE_TLS'] = False           # no TLS needed for local testing
+app.config['MAIL_USE_SSL'] = False           # no SSL needed
+app.config['MAIL_DEFAULT_SENDER'] = ('Blood Donation System', 'test@mail.com')  # default sender email
+# No username/password needed for Mailpit
+# app.config['MAIL_USERNAME'] = None
+# app.config['MAIL_PASSWORD'] = None
+mail = Mail(app)
+
+# Token generator
+def generate_confirmation_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt='email-confirm-salt')
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -36,6 +53,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False) 
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(10), default='user')
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
 
 class BloodDonation(db.Model):
     """ Model to store blood donation records """
@@ -71,13 +89,13 @@ def inject_global_data():
     """ Inject global stats into all templates (base.html, index.html, etc.) """
     stats = {'donations': 0, 'requests': 0, 'total_available': 0}
     
-    # Count all available donations in the system
-    stats['total_available'] = BloodDonation.query.count()
+    # Count ONLY the blood that is physically available to be requested
+    stats['total_available'] = BloodDonation.query.filter_by(status='Pending').count()
     
     if current_user.is_authenticated:
-        # User-specific stats
-        stats['donations'] = BloodDonation.query.filter_by(email=current_user.email).count()
-        stats['requests'] = BloodRequest.query.filter_by(requester_email=current_user.email).count()
+        # Count ONLY donations and requests that have been successfully completed
+        stats['donations'] = BloodDonation.query.filter_by(email=current_user.email, status='Completed').count()
+        stats['requests'] = BloodRequest.query.filter_by(requester_email=current_user.email, status='Completed').count()
         
     return dict(user_stats=stats)
 
@@ -98,6 +116,10 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower()).first()
 
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            if not user.is_verified:
+                flash("You need to verify your email first! Check your inbox.", "warning")
+                return redirect(url_for('login'))
+            
             login_user(user, remember=True)
             flash(f"Welcome back, {user.username}!", "success")
             next_page = request.args.get('next')
@@ -125,18 +147,42 @@ def register():
             return render_template('register.html', form=form)
 
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(
-            username=form.username.data, 
-            email=form.email.data.lower(), 
-            password=hashed_pw,
-            role='user' 
-        )
+        user = User(username=form.username.data, email=form.email.data.lower(), password=hashed_pw)
         db.session.add(user)
         db.session.commit()
-        flash("Account created! You can now log in.", "success")
+
+        # Generate token and send email
+        token = generate_confirmation_token(user.email)
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        html_body = f"<p>Welcome! Click here to confirm your account: <a href='{confirm_url}'>Confirm Email</a></p>"
+        msg = Message("Confirm your account", sender="noreply@tuoapp.com", recipients=[user.email])
+        msg.html = html_body
+        mail.send(msg)
+
+        flash("A confirmation email has been sent to your address. Check it out to log in.", "info")
         return redirect(url_for('login'))
         
     return render_template('register.html', form=form)
+
+# 2. New route for token verification
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        email = serializer.loads(token, salt='email-confirm-salt', max_age=3600) # 1 hour expiration
+    except:
+        flash("The confirmation link is invalid or expired.", "danger")
+        return redirect(url_for('login'))
+        
+    user = User.query.filter_by(email=email).first_or_404()
+    if user.is_verified:
+        flash("Account already confirmed. Please log in.", "success")
+    else:
+        user.is_verified = True
+        db.session.commit()
+        flash("Account confirmed successfully! You can now log in.", "success")
+        
+    return redirect(url_for('login'))
 
 @app.route("/logout")
 @login_required
@@ -345,8 +391,8 @@ def update_donation_status(id):
     donation = BloodDonation.query.get_or_404(id)
     new_status = request.form.get('new_status')
     
-    # Validation of allowed statuses
-    allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Claimed']
+    # Validation for allowed statuses
+    allowed_statuses = ['Pending', 'Claimed', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
     
     if new_status in allowed_statuses:
         donation.status = new_status
@@ -380,10 +426,11 @@ def update_request_status(id):
         
     blood_req = BloodRequest.query.get_or_404(id)
     new_status = request.form.get('new_status')
-    allowed_statuses = ['Pending', 'Approved', 'Unsuccessful', 'Cancelled', 'Fulfilled']
+    
+    allowed_statuses = ['Pending', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
     
     if new_status in allowed_statuses:
-        # ROLLBACK LOGIC: If the request fails, release the blocked blood
+        # ROLLBACK LOGIC: If the request fails, release the reserved blood
         if new_status in ['Cancelled', 'Unsuccessful']:
             donation = BloodDonation.query.filter_by(
                 email=blood_req.donor_email, 
