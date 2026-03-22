@@ -121,7 +121,13 @@ def inject_global_data():
 @app.route("/")
 def home():
     """ Main dashboard """
-    return render_template('index.html')
+    admin_stats = {}
+    if current_user.is_authenticated and current_user.role == 'admin':
+        admin_stats['total_users'] = User.query.count()
+        admin_stats['total_donations'] = BloodDonation.query.count()
+        admin_stats['total_requests'] = BloodRequest.query.count()
+        
+    return render_template('index.html', admin_stats=admin_stats)
 
 @app.route("/login", methods=['GET', 'POST'])
 @limiter.limit("5 per minute")  # Limit login attempts to 5 per minute per IP
