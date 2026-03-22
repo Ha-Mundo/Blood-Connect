@@ -445,6 +445,7 @@ def take_donation():
 
 @app.route("/all_donations_db")
 @login_required
+@limiter.exempt
 def all_donations_db():
     """ Admin only: View all donation records paginated """
     if current_user.role != 'admin':
@@ -459,6 +460,7 @@ def all_donations_db():
 
 @app.route("/update_donation_status/<int:id>", methods=['POST'])
 @login_required
+@limiter.exempt
 def update_donation_status(id):
     """ Admin only: Update the status of a blood donation """
     if current_user.role != 'admin':
@@ -481,6 +483,7 @@ def update_donation_status(id):
 
 @app.route("/all_requests_db")
 @login_required
+@limiter.exempt
 def all_requests_db():
     """ Admin only: View all request records paginated """
     if current_user.role != 'admin':
@@ -495,6 +498,7 @@ def all_requests_db():
 
 @app.route("/update_request_status/<int:id>", methods=['POST'])
 @login_required
+@limiter.exempt
 def update_request_status(id):
     """ Admin only: Update the status of a blood request and handle rollbacks """
     if current_user.role != 'admin':
@@ -527,6 +531,7 @@ def update_request_status(id):
 
 @app.route("/all_users_db")
 @login_required
+@limiter.exempt
 def all_users_db():
     if current_user.role != 'admin':
         abort(403)
@@ -539,6 +544,7 @@ def all_users_db():
 
 @app.route("/update_users_status/<int:user_id>", methods=['POST'])
 @login_required
+@limiter.exempt
 def toggle_user(user_id):
     """ Admin only: Ban/Unban users and cleanup their active records """
     if current_user.role != 'admin':
