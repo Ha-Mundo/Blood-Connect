@@ -20,7 +20,7 @@ form {
     margin-bottom: -1.3rem;
 }
 
-table {
+.fixed-table {
     table-layout: fixed;
 }
 
