@@ -3,12 +3,10 @@
 
 <div class="container text-center">
 
-    <!-- Main actions row -->
     <div class="row justify-content-center mt-4 g-4">
 
         {% if not current_user.is_authenticated %}
 
-            <!-- Login/Register buttons -->
             <div class="col-lg-12">
                 <a class="btn btn-primary btn-lg me-2" href="{{ url_for('login') }}">
                     Login 
@@ -21,76 +19,60 @@
 
         {% else %}
         
-        {% if current_user.role == 'user' %}
-            <!-- Donate blood -->
+            {% if current_user.role == 'user' %}
             <div class="col-lg-4 col-md-6">
-                <a class="btn-d icon-box d-block p-3" href="/blood_donation">
-
+                <a class="d-flex flex-column align-items-center btn-d icon-box d-block p-3" href="/blood_donation">
                     <img src="/static/blood-donation.png" class="b-icons">
-
                     <h2 class="d-inline-block mt-2">
                         Donate Blood
                     </h2>
-
                 </a>
             </div>
 
-            <!-- Receive blood -->
             <div class="col-lg-4 col-md-6">
-                <a class="btn-r icon-box d-block p-3" href="/blood_receive">
-
+                <a class="d-flex flex-column align-items-center btn-r icon-box d-block p-3" href="/blood_receive">
                     <img src="/static/blood-request.png" class="b-icons">
-
                     <h2 class="d-inline-block mt-2">
                         Receive Blood
                     </h2>
-
                 </a>
             </div>
             {% endif %}
 
             {% if current_user.role == 'admin' %}
-
-            <!-- Admin database access -->
             <div class="col-lg-4 col-md-6">
-                <a class="btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
                    href="/all_donations_db"
                    style="background-color:#f8d7da;">
-
                     <img src="/static/blood-donations-db.png" class="b-icons">
-
-                    <h2 class="mt-2">
+                    <h2 class="mt-0 mb-2">
                         Donations DB
                     </h2>
-
+                    <span class="badge bg-danger fs-6 rounded-pill">Total: {{ admin_stats.total_donations }}</span>
                 </a>
             </div>
             
             <div class="col-lg-4 col-md-6">
-                <a class="btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
                    href="/all_requests_db"
                    style="background-color:#f8d7da;">
-
                     <img src="/static/blood-requests-db.png" class="b-icons">
-
-                    <h2 class="mt-2">
+                    <h2 class="mt-0 mb-2">
                         Requests DB
                     </h2>
-
+                    <span class="badge bg-danger fs-6 rounded-pill">Total: {{ admin_stats.total_requests }}</span>
                 </a>
             </div>
 
             <div class="col-lg-4 col-md-6">
-                <a class="btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
                    href="/all_users_db"
                    style="background-color:#f8d7da;">
-
                     <img src="/static/users-db.svg" class="b-icons">
-
-                    <h2 class="mt-2">
+                    <h2 class="mt-0 mb-2">
                         Users DB
                     </h2>
-
+                    <span class="badge bg-danger fs-6 rounded-pill">Total: {{ admin_stats.total_users }}</span>
                 </a>
             </div>
             {% endif %}
