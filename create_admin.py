@@ -36,7 +36,7 @@ def create_admin():
             username=username, 
             email=email.lower(), 
             password=hashed_pw,
-            role='admin' 
+            role='admin', 
             is_verified=True
         )
         
