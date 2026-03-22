@@ -527,13 +527,15 @@ def update_request_status(id):
 
 @app.route("/all_users_db")
 @login_required
-def manage_users():
+def all_users_db():
     if current_user.role != 'admin':
         abort(403)
     
     page = request.args.get('page', 1, type=int)
-    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=15)
-    return render_template('manage_users.html', users=users)
+    pagination = User.query.order_by(User.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    count = User.query.count()
+    
+    return render_template('users_db.html', pagination=pagination, all_users_counter=count)
 
 @app.route("/update_users_status/<int:user_id>", methods=['POST'])
 @login_required
@@ -570,7 +572,7 @@ def toggle_user(user_id):
         status = "banned and their active records cleared" if not user.is_active else "activated"
         flash(f"User {user.username} has been {status}.", "success")
     
-    return redirect(url_for('manage_users'))
+    return redirect(url_for('all_users_db'))
 
 if __name__ == '__main__':
     with app.app_context():
