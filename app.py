@@ -525,7 +525,7 @@ def update_request_status(id):
         
     return redirect(url_for('all_requests_db'))
 
-@app.route("/users")
+@app.route("/all_users_db")
 @login_required
 def manage_users():
     if current_user.role != 'admin':
@@ -535,9 +535,10 @@ def manage_users():
     users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=15)
     return render_template('manage_users.html', users=users)
 
-@app.route("/toggle_user/<int:user_id>", methods=['POST'])
+@app.route("/update_users_status/<int:user_id>", methods=['POST'])
 @login_required
 def toggle_user(user_id):
+    """ Admin only: Ban/Unban users and cleanup their active records """
     if current_user.role != 'admin':
         abort(403)
     
@@ -546,8 +547,27 @@ def toggle_user(user_id):
         flash("You cannot ban another administrator!", "danger")
     else:
         user.is_active = not user.is_active
+        
+        # If the user is being banned, cleanup their active interactions
+        if not user.is_active:
+            # 1. Cancel all their pending donations
+            BloodDonation.query.filter_by(email=user.email, status='Pending').update({'status': 'Cancelled'})
+            
+            # 2. Handle their pending requests
+            pending_requests = BloodRequest.query.filter_by(requester_email=user.email, status='Pending').all()
+            for req in pending_requests:
+                # Release the claimed blood for each request
+                donation = BloodDonation.query.filter_by(
+                    email=req.donor_email, 
+                    blood_groups=req.blood_groups,
+                    status='Claimed'
+                ).first()
+                if donation:
+                    donation.status = 'Pending'
+                req.status = 'Cancelled'
+        
         db.session.commit()
-        status = "banned" if not user.is_active else "activated"
+        status = "banned and their active records cleared" if not user.is_active else "activated"
         flash(f"User {user.username} has been {status}.", "success")
     
     return redirect(url_for('manage_users'))
