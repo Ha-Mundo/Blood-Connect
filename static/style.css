@@ -20,6 +20,9 @@ form {
     margin-bottom: -1.3rem;
 }
 
+table {
+    table-layout: fixed;
+}
 
 /* =================================================
    NAVBAR
