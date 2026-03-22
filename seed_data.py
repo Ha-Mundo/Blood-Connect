@@ -3,17 +3,22 @@ import datetime
 
 def seed():
     with app.app_context():
-        # This will only create tables if they don't exist. 
-        # Remember to delete the .db file first to apply 'status' columns!
+        # Ensure tables exist before seeding
         db.create_all()
         
         today = datetime.date.today()
         next_d = today + datetime.timedelta(days=90)
+        default_pw = bcrypt.generate_password_hash("Password123!").decode('utf-8')
 
         # 1. User-Test (Standard User)
         if not User.query.filter_by(email="test@mail.com").first():
-            pw = bcrypt.generate_password_hash("Password123").decode('utf-8')
-            db.session.add(User(username="User-Test", email="test@mail.com", password=pw, role="user"))
+            db.session.add(User(
+                username="User-Test", 
+                email="test@mail.com", 
+                password=default_pw, 
+                role="user",
+                is_verified=True  # Now pre-verified
+            ))
 
         # 2. Donors data
         donors_data = [
@@ -39,16 +44,33 @@ def seed():
             {"name": "tom", "age": 50, "blood_groups": "o-", "city": "edinburgh", "email": "tom@mail.com"}
         ]
 
-        # 3. Seeding loop with status field
+        # 3. Seeding loop for both Tables (User and BloodDonation)
         new_entries = 0
         for data in donors_data:
+            # Check if User already exists to avoid duplicates
+            if not User.query.filter_by(email=data['email']).first():
+                # Create a pre-verified User account for each donor
+                new_user = User(
+                    username=data['name'],
+                    email=data['email'],
+                    password=default_pw,
+                    role="user",
+                    is_verified=True # Pre-verified for testing
+                )
+                db.session.add(new_user)
+
+            # Check if Donation record already exists
             if not BloodDonation.query.filter_by(email=data['email']).first():
-                # Explicitly adding status='Pending' for the new database column
-                db.session.add(BloodDonation(**data, latest_donation=today, next_donation=next_d, status='Pending'))
+                db.session.add(BloodDonation(
+                    **data, 
+                    latest_donation=today, 
+                    next_donation=next_d, 
+                    status='Pending'
+                ))
                 new_entries += 1
         
         db.session.commit()
-        print(f"Seed completed. New records added!: {new_entries}")
+        print(f"Seed completed. New donation records added: {new_entries}")
 
 if __name__ == "__main__":
     seed()
