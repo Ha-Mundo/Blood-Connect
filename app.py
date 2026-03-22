@@ -64,6 +64,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(10), default='user')
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True) # True = Active, False = Banned
 
 class BloodDonation(db.Model):
     """ Model to store blood donation records """
@@ -134,6 +135,10 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower()).first()
 
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            if not user.is_active:
+                flash("Your account has been suspended for violating our terms.", "danger")
+                return redirect(url_for('login'))
+            
             if not user.is_verified:
                 flash("You need to verify your email first! Check your inbox.", "warning")
                 return redirect(url_for('login'))
@@ -519,6 +524,33 @@ def update_request_status(id):
         flash("Invalid status update.", "danger")
         
     return redirect(url_for('all_requests_db'))
+
+@app.route("/users")
+@login_required
+def manage_users():
+    if current_user.role != 'admin':
+        abort(403)
+    
+    page = request.args.get('page', 1, type=int)
+    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=15)
+    return render_template('manage_users.html', users=users)
+
+@app.route("/toggle_user/<int:user_id>", methods=['POST'])
+@login_required
+def toggle_user(user_id):
+    if current_user.role != 'admin':
+        abort(403)
+    
+    user = User.query.get_or_404(user_id)
+    if user.role == 'admin':
+        flash("You cannot ban another administrator!", "danger")
+    else:
+        user.is_active = not user.is_active
+        db.session.commit()
+        status = "banned" if not user.is_active else "activated"
+        flash(f"User {user.username} has been {status}.", "success")
+    
+    return redirect(url_for('manage_users'))
 
 if __name__ == '__main__':
     with app.app_context():
