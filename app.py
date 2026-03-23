@@ -101,6 +101,15 @@ def ratelimit_handler(e):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# --- NEW CHECK - AUTO-LOGOUT ---
+@app.before_request
+def check_banned_user():
+    """ Instantly log out users who have been banned while actively browsing """
+    if current_user.is_authenticated and not current_user.is_active:
+        logout_user()
+        flash("Your account has been suspended by an administrator.", "danger")
+        return redirect(url_for('login'))
+
 # --- CONTEXT PROCESSOR FOR STATS ---
 @app.context_processor
 def inject_global_data():
