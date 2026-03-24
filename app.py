@@ -477,7 +477,7 @@ def all_donations_db():
 @login_required
 @limiter.exempt
 def update_donation_status(id):
-    """ Admin only: Update the status of a blood donation """
+    """ Admin only: Update the status of a blood donation and notify user """
     if current_user.role != 'admin':
         abort(403)
         
@@ -490,6 +490,19 @@ def update_donation_status(id):
     if new_status in allowed_statuses:
         donation.status = new_status
         db.session.commit()
+        
+        # Send email notification if Approved
+        if new_status == 'Approved':
+            try:
+                msg = Message("Blood Donation Approved", 
+                              sender=app.config['MAIL_DEFAULT_SENDER'], 
+                              recipients=[donation.email])
+                msg.body = f"Hello {donation.name.capitalize()},\n\nGreat news! Your blood donation has been Approved. Thank you for your contribution to the community."
+                mail.send(msg)
+            except Exception as e:
+                # Failsafe so the app doesn't crash if the mail server is down
+                flash("Status updated, but email notification failed to send.", "warning")
+
         flash(f"Donation #{id} updated to {new_status}.", "success")
     else:
         flash("Invalid status update.", "danger")
@@ -561,7 +574,7 @@ def all_users_db():
 @login_required
 @limiter.exempt
 def toggle_user(user_id):
-    """ Admin only: Ban/Unban users and cleanup their active records """
+    """ Admin only: Ban/Unban users, cleanup records, and notify user """
     if current_user.role != 'admin':
         abort(403)
     
@@ -573,13 +586,10 @@ def toggle_user(user_id):
         
         # If the user is being banned, cleanup their active interactions
         if not user.is_active:
-            # 1. Cancel all their pending donations
             BloodDonation.query.filter_by(email=user.email, status='Pending').update({'status': 'Cancelled'})
             
-            # 2. Handle their pending requests
             pending_requests = BloodRequest.query.filter_by(requester_email=user.email, status='Pending').all()
             for req in pending_requests:
-                # Release the claimed blood for each request
                 donation = BloodDonation.query.filter_by(
                     email=req.donor_email, 
                     blood_groups=req.blood_groups,
@@ -590,6 +600,18 @@ def toggle_user(user_id):
                 req.status = 'Cancelled'
         
         db.session.commit()
+        
+        # Send email notification regarding account status
+        action = "suspended" if not user.is_active else "reactivated"
+        try:
+            msg = Message(f"Account {action.capitalize()} - Blood Donation System", 
+                          sender=app.config['MAIL_DEFAULT_SENDER'], 
+                          recipients=[user.email])
+            msg.body = f"Hello {user.username},\n\nYour account has been {action} by an administrator. If you believe this is an error, please contact support."
+            mail.send(msg)
+        except Exception as e:
+            flash("User updated, but email notification failed to send.", "warning")
+
         status = "banned and their active records cleared" if not user.is_active else "activated"
         flash(f"User {user.username} has been {status}.", "success")
     
