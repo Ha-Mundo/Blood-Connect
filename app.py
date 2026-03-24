@@ -528,7 +528,7 @@ def all_requests_db():
 @login_required
 @limiter.exempt
 def update_request_status(id):
-    """ Admin only: Update the status of a blood request and handle rollbacks """
+    """ Admin only: Update blood request status, handle rollbacks, and notify user """
     if current_user.role != 'admin':
         abort(403)
         
@@ -538,7 +538,7 @@ def update_request_status(id):
     allowed_statuses = ['Pending', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
     
     if new_status in allowed_statuses:
-        # ROLLBACK LOGIC: If the request fails, release the reserved blood
+        # ROLLBACK LOGIC: If the request fails, free the reserved blood
         if new_status in ['Cancelled', 'Unsuccessful']:
             donation = BloodDonation.query.filter_by(
                 email=blood_req.donor_email, 
@@ -551,6 +551,26 @@ def update_request_status(id):
 
         blood_req.status = new_status
         db.session.commit()
+
+        # --- SENDING EMAIL NOTIFICATIONS ---
+        try:
+            if new_status == 'Approved':
+                msg = Message("Blood Request Approved", 
+                              sender=app.config['MAIL_DEFAULT_SENDER'], 
+                              recipients=[blood_req.requester_email])
+                msg.body = f"Hello {blood_req.name.capitalize()},\n\nYour blood request for group {blood_req.blood_groups.upper()} in {blood_req.city.capitalize()} has been Approved. We are coordinating the next steps."
+                mail.send(msg)
+
+            elif new_status == 'Unsuccessful':
+                msg = Message("Blood Request Update", 
+                              sender=app.config['MAIL_DEFAULT_SENDER'], 
+                              recipients=[blood_req.requester_email])
+                msg.body = f"Hello {blood_req.name.capitalize()},\n\nWe regret to inform you that your blood request for group {blood_req.blood_groups.upper()} could not be fulfilled at this time and has been marked as {new_status}."
+                mail.send(msg)
+                
+        except Exception as e:
+            flash("Status updated, but email notification failed.", "warning")
+
         flash(f"Blood Request #{id} updated to {new_status}.", "success")
     else:
         flash("Invalid status update.", "danger")
