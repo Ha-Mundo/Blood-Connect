@@ -585,8 +585,29 @@ def all_users_db():
         abort(403)
     
     page = request.args.get('page', 1, type=int)
-    pagination = User.query.order_by(User.id.desc()).paginate(page=page, per_page=10, error_out=False)
-    count = User.query.count()
+    search = request.args.get('search')
+    status = request.args.get('status')
+    verified = request.args.get('verified')
+
+    # Base query
+    query = User.query
+
+    # Apply Search (Username or Email)
+    if search:
+        query = query.filter((User.username.contains(search)) | (User.email.contains(search)))
+
+    # Apply Status Filter (Active/Banned)
+    if status:
+        is_active = True if status == 'active' else False
+        query = query.filter_by(is_active=is_active)
+
+    # Apply Verification Filter
+    if verified in ['1', '0']:
+        is_verified = True if verified == '1' else False
+        query = query.filter_by(is_verified=is_verified)
+
+    pagination = query.order_by(User.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    count = query.count()
     
     return render_template('users_db.html', pagination=pagination, all_users_counter=count)
 
