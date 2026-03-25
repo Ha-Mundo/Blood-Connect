@@ -5,7 +5,50 @@
         <h2>🏥 Blood Requests Database</h2>
         <span class="badge bg-danger fs-5">Total Requests: {{ all_requests_counter }}</span>
     </div>
+    <!-- Blood Requests Search Bar -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('all_requests_db') }}" class="row g-2 align-items-center">
+                
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control form-control-sm" 
+                        placeholder="Search name, email, or city..." value="{{ request.args.get('search', '') }}">
+                </div>
 
+                <div class="col-md-3">
+                    <select name="blood_group" class="form-select form-select-sm">
+                        <option value="">All Blood Groups</option>
+                        <option value="a+" {{ 'selected' if request.args.get('blood_group') == 'a+' }}>A+</option>
+                        <option value="a-" {{ 'selected' if request.args.get('blood_group') == 'a-' }}>A-</option>
+                        <option value="b+" {{ 'selected' if request.args.get('blood_group') == 'b+' }}>B+</option>
+                        <option value="b-" {{ 'selected' if request.args.get('blood_group') == 'b-' }}>B-</option>
+                        <option value="ab+" {{ 'selected' if request.args.get('blood_group') == 'ab+' }}>AB+</option>
+                        <option value="ab-" {{ 'selected' if request.args.get('blood_group') == 'ab-' }}>AB-</option>
+                        <option value="o+" {{ 'selected' if request.args.get('blood_group') == 'o+' }}>O+</option>
+                        <option value="o-" {{ 'selected' if request.args.get('blood_group') == 'o-' }}>O-</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        <option value="Pending" {{ 'selected' if request.args.get('status') == 'Pending' }}>Pending</option>
+                        <option value="Approved" {{ 'selected' if request.args.get('status') == 'Approved' }}>Approved</option>
+                        <option value="Completed" {{ 'selected' if request.args.get('status') == 'Completed' }}>Completed</option>
+                        <option value="Unsuccessful" {{ 'selected' if request.args.get('status') == 'Unsuccessful' }}>Unsuccessful</option>
+                        <option value="Cancelled" {{ 'selected' if request.args.get('status') == 'Cancelled' }}>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+                    <a href="{{ url_for('all_requests_db') }}" class="btn btn-sm btn-outline-secondary w-100">Clear</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <!-- Blood Requests Table -->
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
@@ -49,11 +92,11 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         
                                         <button name="new_status" value="Completed" class="btn btn-outline-primary btn-sm" title="Mark Completed">
-                                            <i class="bi bi-flag-fill"></i> Complete
+                                             Complete
                                         </button>
                                         
                                         <button name="new_status" value="Approved" class="btn btn-outline-success btn-sm" title="Approve">
-                                            <i class="bi bi-check-circle"></i> Approve
+                                             Approve
                                         </button>
 
                                         
