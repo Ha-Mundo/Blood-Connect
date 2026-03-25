@@ -462,14 +462,38 @@ def take_donation():
 @login_required
 @limiter.exempt
 def all_donations_db():
-    """ Admin only: View all donation records paginated """
+    """ Admin only: View and filter all donation records paginated """
     if current_user.role != 'admin':
         abort(403) 
         
     page = request.args.get('page', 1, type=int)
-    # Paginate all records ordered by newest first
-    pagination = BloodDonation.query.order_by(BloodDonation.id.desc()).paginate(page=page, per_page=10, error_out=False)
-    count = BloodDonation.query.count()
+    search = request.args.get('search')
+    blood_group = request.args.get('blood_group')
+    status = request.args.get('status')
+
+    # Base query
+    query = BloodDonation.query
+
+    # Apply Search (Name, Email, or City) - Forcing lowercase to match DB entries
+    if search:
+        search_term = search.lower()
+        query = query.filter(
+            (BloodDonation.name.contains(search_term)) | 
+            (BloodDonation.email.contains(search_term)) |
+            (BloodDonation.city.contains(search_term))
+        )
+
+    # Apply Blood Group Filter
+    if blood_group:
+        query = query.filter_by(blood_groups=blood_group.lower())
+
+    # Apply Status Filter
+    if status:
+        query = query.filter_by(status=status)
+
+    # Paginate and count filtered records
+    pagination = query.order_by(BloodDonation.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    count = query.count()
     
     return render_template('donation_db.html', pagination=pagination, all_donations_counter=count)
 
