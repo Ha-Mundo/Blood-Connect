@@ -88,6 +88,14 @@
                                 {% else %}
                                     <span class="badge bg-secondary">{{ donation.status }}</span>
                                 {% endif %}
+                                {% if donation.status == 'Claimed' and matches.get(donation.id) %}
+                                <div>
+                            
+                                    <small class="small fw-bold text-dark">{{ matches[donation.id].name|title }}</small>
+                                    <span> | </span>
+                                    <small class="text-muted" style="font-size: 0.9rem;">{{ matches[donation.id].email }}</small>
+                                </div>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
