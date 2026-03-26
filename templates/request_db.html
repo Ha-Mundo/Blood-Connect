@@ -56,10 +56,11 @@
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Requester / Patient</th>
+                            <th>Requester</th>
                             <th>Blood Required</th>
                             <th>City</th>
                             <th>Date</th>
+                            <th>Donor Match</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -75,6 +76,14 @@
                             <td><span class="badge bg-danger">{{ req.blood_groups.upper() }}</span></td>
                             <td class="text-capitalize">{{ req.city }}</td>
                             <td>{{ req.request_date.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                            {% if req.donor_email %}
+                                <div class="small fw-bold">{{ req.donor_email }}</div>
+                                <span class="text-muted" style="font-size: 0.8rem;">Matched Donor</span>
+                            {% else %}
+                                <span class="text-muted small">No match yet</span>
+                            {% endif %}
+                            </td>
                             <td>
                                 {% if req.status == 'Pending' %}
                                     <span class="badge bg-warning text-dark">Pending</span>
