@@ -493,9 +493,24 @@ def all_donations_db():
 
     # Paginate and count filtered records
     pagination = query.order_by(BloodDonation.id.desc()).paginate(page=page, per_page=10, error_out=False)
-    count = query.count()
     
-    return render_template('donation_db.html', pagination=pagination, all_donations_counter=count)
+       # - ADMIN MATCHING LOGIC ---
+    # Dictionary to map the donation to its requester
+    matches = {}
+    for donation in pagination.items:
+        if donation.status == 'Claimed':
+            # We are looking for the "Pending" request that booked this specific donor email
+            req_match = BloodRequest.query.filter_by(donor_email=donation.email, status='Pending').first()
+            if req_match:
+                matches[donation.id] = {
+                    'name': req_match.name,
+                    'email': req_match.requester_email
+                }
+    
+    return render_template('donation_db.html', 
+                           pagination=pagination, 
+                           all_donations_counter=query.count(),
+                           matches=matches)
 
 @app.route("/update_donation_status/<int:id>", methods=['POST'])
 @login_required
