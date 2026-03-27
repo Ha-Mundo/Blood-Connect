@@ -116,8 +116,8 @@ def inject_global_data():
     """ Inject global stats into all templates (base.html, index.html, etc.) """
     stats = {'donations': 0, 'requests': 0, 'total_available': 0}
     
-    # Count ONLY the blood that is physically available to be requested
-    stats['total_available'] = BloodDonation.query.filter_by(status='Pending').count()
+   # Count ONLY the blood that is 'Approved' and ready for use
+    stats['total_available'] = BloodDonation.query.filter_by(status='Approved').count()
     
     if current_user.is_authenticated:
         # Count ONLY donations and requests that have been successfully completed
@@ -308,6 +308,11 @@ def blood_donation():
         form.email.data = current_user.email
     
     if form.validate_on_submit() and not active_donation:
+        # Age validation check
+        if form.age.data < 18:
+            flash("Legal requirement: You must be at least 18 years old to donate blood.", "danger")
+            return render_template('donate.html', form=form, active_donation=None)
+        
         email = form.email.data.lower()
         
         # Double-check cooldown for Approved donations at the logic level
@@ -379,11 +384,11 @@ def blood_receive():
     if city and bg:
         page = request.args.get('page', 1, type=int)
         
-        # CRITICAL FIX: Only search for donations that are 'Pending' (available)
+       # Only search for donations that are 'Approved'
         pagination = BloodDonation.query.filter_by(
             blood_groups=bg.lower(),
             city=city.lower(),
-            status='Pending' 
+            status='Approved' 
         ).paginate(page=page, per_page=10, error_out=False)
         
         if not pagination.items:
@@ -591,7 +596,6 @@ def all_requests_db():
 @login_required
 @limiter.exempt
 def update_request_status(id):
-    """ Admin only: Update blood request status, handle rollbacks, and notify user """
     if current_user.role != 'admin':
         abort(403)
         
@@ -601,22 +605,40 @@ def update_request_status(id):
     allowed_statuses = ['Pending', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
     
     if new_status in allowed_statuses:
-        # ROLLBACK LOGIC: If the request fails, free the reserved blood
+        # --- SYNCHRONIZATION LOGIC ---
+        
+        # 1. ROLLBACK: If request fails/cancelled, release the donation back to 'Pending'
         if new_status in ['Cancelled', 'Unsuccessful']:
             donation = BloodDonation.query.filter_by(
                 email=blood_req.donor_email, 
                 blood_groups=blood_req.blood_groups,
                 status='Claimed'
             ).first()
-            
             if donation:
                 donation.status = 'Pending'
+
+        # 2. SUCCESS: If request is Completed, mark the donation as 'Completed' too
+        elif new_status == 'Completed':
+            donation = BloodDonation.query.filter_by(
+                email=blood_req.donor_email, 
+                blood_groups=blood_req.blood_groups,
+                status='Claimed'
+            ).first()
+            if donation:
+                donation.status = 'Completed'
 
         blood_req.status = new_status
         db.session.commit()
 
-        # --- SENDING EMAIL NOTIFICATIONS ---
+        # --- EMAIL NOTIFICATIONS ---
         try:
+            if new_status == 'Completed':
+                msg = Message("Blood Request Fulfilled", 
+                              sender=app.config['MAIL_DEFAULT_SENDER'], 
+                              recipients=[blood_req.requester_email])
+                msg.body = f"Hello {blood_req.name.capitalize()},\n\nWe are happy to confirm that your blood request has been successfully completed. Thank you for using our system."
+                mail.send(msg)
+                
             if new_status == 'Approved':
                 msg = Message("Blood Request Approved", 
                               sender=app.config['MAIL_DEFAULT_SENDER'], 
@@ -624,7 +646,7 @@ def update_request_status(id):
                 msg.body = f"Hello {blood_req.name.capitalize()},\n\nYour blood request for group {blood_req.blood_groups.upper()} in {blood_req.city.capitalize()} has been Approved. We are coordinating the next steps."
                 mail.send(msg)
 
-            elif new_status == 'Unsuccessful':
+            if new_status == 'Unsuccessful':
                 msg = Message("Blood Request Update", 
                               sender=app.config['MAIL_DEFAULT_SENDER'], 
                               recipients=[blood_req.requester_email])
