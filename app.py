@@ -551,7 +551,7 @@ def update_donation_status(id):
     else:
         flash("Invalid status update.", "danger")
         
-    return redirect(url_for('all_donations_db'))
+    return redirect(request.referrer or url_for('all_donations_db'))
 
 @app.route("/all_requests_db")
 @login_required
@@ -660,7 +660,7 @@ def update_request_status(id):
     else:
         flash("Invalid status update.", "danger")
         
-    return redirect(url_for('all_requests_db'))
+    return redirect(request.referrer or url_for('all_requests_db'))
 
 @app.route("/all_users_db")
 @login_required
@@ -741,7 +741,7 @@ def toggle_user(user_id):
         status = "banned and their active records cleared" if not user.is_active else "activated"
         flash(f"User {user.username} has been {status}.", "success")
     
-    return redirect(url_for('all_users_db'))
+    return redirect(request.referrer or url_for('all_users_db'))
 
 if __name__ == '__main__':
     with app.app_context():
