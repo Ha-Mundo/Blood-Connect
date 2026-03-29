@@ -89,7 +89,37 @@ class BloodRequest(db.Model):
     donor_email = db.Column(db.String(120), nullable=False)     
     request_date = db.Column(db.Date, nullable=False, default=datetime.date.today)
     status = db.Column(db.String(20), nullable=False, default='Pending')
-    
+
+# --- ERROR HANDLING LOGIC ---
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # Standard 'Not Found' error
+    return render_template('error.html', 
+                           error_code=404, 
+                           error_message="The page you are looking for doesn't exist or has been moved."), 404
+
+@app.errorhandler(403)
+def forbidden(e):
+    # Permission denied (e.g. non-admin trying to access DB)
+    return render_template('error.html', 
+                           error_code=403, 
+                           error_message="You don't have permission to access this resource."), 403
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    # General server-side crash
+    return render_template('error.html', 
+                           error_code=500, 
+                           error_message="An unexpected error occurred. Our team has been notified."), 500
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    # Wrong HTTP method (e.g. GET instead of POST)
+    return render_template('error.html', 
+                           error_code=405, 
+                           error_message="The method is not allowed for the requested URL."), 405
+       
 # Handle the 429 error gracefully so the user sees a Bootstrap flash message
 @app.errorhandler(429)
 def ratelimit_handler(e):
