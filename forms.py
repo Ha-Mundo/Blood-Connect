@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, IntegerField, SelectField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, Regexp
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Regexp, Optional
 
 # English: Predefined list for the dropdown menus
 BLOOD_CHOICES = [
@@ -68,3 +68,20 @@ class ResetPasswordForm(FlaskForm):
         EqualTo('password', message='Passwords must match.')
     ])
     submit = SubmitField('Reset Password')
+    
+class ProfileForm(FlaskForm):
+    """ Form for updating user profile """
+    username = StringField('Full Name', validators=[Optional(), Length(min=2, max=50)])
+    blood_group = SelectField('Blood Group', choices=[('', 'Select Blood Group...')] + BLOOD_CHOICES, validators=[Optional()])
+    
+    new_password = PasswordField('New Password', validators=[
+        Optional(), 
+        Length(min=8),
+        Regexp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$', 
+               message="Password must contain uppercase, lowercase, number, and special character.")
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        EqualTo('new_password', message='Passwords must match.')
+    ])
+    
+    submit = SubmitField('Update Profile')
