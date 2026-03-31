@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Account Settings</h5>
+                </div>
+                <div class="card-body mb-4">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label fw-bold") }}
+                            {{ form.username(class="form-control") }}
+                        </div>
+                        
+                        {% if current_user.role != 'admin' %}
+                        <div class="mb-3">
+                            {{ form.blood_group.label(class="form-label fw-bold") }}
+                            {{ form.blood_group(class="form-select") }}
+                            <div class="form-text">Set your blood group to auto-fill future forms.</div>
+                        </div>
+                        {% endif %}
+                        
+                        <hr>
+                        <h6 class="text-muted mb-3">Change Password (Optional)</h6>
+                        <div class="mb-3">
+                            {{ form.new_password.label(class="form-label fw-bold") }}
+                            {{ form.new_password(class="form-control", placeholder="Leave blank to keep current") }}
+                            {% if form.new_password.errors %}
+                                <div class="text-danger small mt-1">{{ form.new_password.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.confirm_password.label(class="form-label fw-bold") }}
+                            {{ form.confirm_password(class="form-control") }}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            {% if current_user.role == 'admin' %}
+                <div class="card shadow-sm border-danger p-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>System Maintenance</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="text-muted mb-4">
+                            Optimize the database by permanently removing 'Cancelled' and 'Unsuccessful' records older than 30 days.
+                        </p>
+                        <form action="{{ url_for('admin_cleanup') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete old records? This cannot be undone.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-trash-alt me-2"></i>Run Database Pruning
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Your Impact</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-4">
+                            <h2 class="display-4 fw-bold text-success">{{ completed_donations }}</h2>
+                            <span class="text-muted text-uppercase small fw-bold">Successful Donations</span>
+                        </div>
+                        <hr>
+                        <div>
+                            <h2 class="display-4 fw-bold text-primary">{{ completed_requests }}</h2>
+                            <span class="text-muted text-uppercase small fw-bold">Fulfilled Requests</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
