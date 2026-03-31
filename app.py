@@ -1,5 +1,6 @@
 import os
 import datetime
+from datetime import timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -12,7 +13,7 @@ from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 
 # Local imports
-from forms import DonationForm, RequestForm, RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
+from forms import DonationForm, RequestForm, RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm
 from time_limit import threshold_donation, threshold_request, is_action_allowed
 
 # 1. INITIALIZATION & CONFIG
@@ -63,6 +64,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False) 
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(10), default='user')
+    blood_group = db.Column(db.String(5), nullable=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True) # True = Active, False = Banned
 
@@ -312,6 +314,73 @@ def reset_token(token):
         return redirect(url_for('login'))
         
     return render_template('reset_token.html', form=form)
+
+@app.route("/profile", methods=['GET', 'POST'])
+@login_required
+def profile():
+    """ Unified profile page: updates data and displays stats if user is not admin """
+    form = ProfileForm()
+    
+    if form.validate_on_submit():
+        # 1. Update Username/Name
+        if form.username.data:
+            current_user.username = form.username.data.lower()
+            
+        # 2. Update Blood Group
+        if form.blood_group.data:
+            current_user.blood_group = form.blood_group.data.lower()
+            
+        # 3. Update Password
+        if form.new_password.data:
+            hashed_pw = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+            current_user.password = hashed_pw
+            
+        db.session.commit()
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for('profile'))
+        
+    elif request.method == 'GET':
+        # Pre-fill the form with existing database values
+        form.username.data = current_user.username.title()
+        form.blood_group.data = current_user.blood_group.upper() if current_user.blood_group else ''
+
+    # Get completed stats only for regular users
+    completed_donations = 0
+    completed_requests = 0
+    if current_user.role != 'admin':
+        completed_donations = BloodDonation.query.filter_by(email=current_user.email, status='Completed').count()
+        completed_requests = BloodRequest.query.filter_by(requester_email=current_user.email, status='Completed').count()
+
+    return render_template('profile.html', 
+                           form=form, 
+                           completed_donations=completed_donations, 
+                           completed_requests=completed_requests)
+
+@app.route("/admin_cleanup", methods=['POST'])
+@login_required
+@limiter.exempt
+def admin_cleanup():
+    """ Admin only: Delete Cancelled and Unsuccessful records older than 30 days """
+    if current_user.role != 'admin':
+        abort(403)
+        
+    # Safety logic: We only delete failed/cancelled transactions, keeping the successful history.
+    threshold_date = datetime.date.today() - timedelta(days=30)
+    
+    deleted_donations = BloodDonation.query.filter(
+        BloodDonation.status.in_(['Cancelled', 'Unsuccessful']),
+        BloodDonation.latest_donation < threshold_date
+    ).delete(synchronize_session=False)
+    
+    deleted_requests = BloodRequest.query.filter(
+        BloodRequest.status.in_(['Cancelled', 'Unsuccessful']),
+        BloodRequest.request_date < threshold_date
+    ).delete(synchronize_session=False)
+    
+    db.session.commit()
+    flash(f"Database optimized. Removed {deleted_donations} old donations and {deleted_requests} old requests.", "info")
+    
+    return redirect(url_for('profile'))
 
 @app.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
