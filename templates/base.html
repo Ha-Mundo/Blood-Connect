@@ -26,24 +26,28 @@
     
     <!-- Navigation bar -->
     <nav class="navbar">
-      <span class="m-3">
-        <img src="/static/BDS.png" class="blogo">
-        <h2 class="display-7 header">Blood Donation System</h2>
-      </span>
+      <a href="{{ url_for('home') }}" class="text-decoration-none">
+        <span class="m-3">
+          <img src="/static/BDS.png" class="blogo">
+          <h2 class="display-7 header">Blood Donation System</h2>
+        </span>
+      </a>
 
        
               {% if current_user.is_authenticated %}
         <div class="d-flex align-items-center">
-            
-            <img src="{{ url_for('static', filename='user-solid-full.svg') }}" 
-                 alt="User Profile" 
-                 class="me-2"
-                 style="width: 28px; height: 28px; cursor: pointer;" 
-                 data-bs-toggle="tooltip" 
-                 data-bs-placement="bottom" 
-                 title="{% if current_user.role == 'admin' %}Super User Administrator{% else %}Blood Donations: {{ user_stats.donations }} | Blood Requests: {{ user_stats.requests }}{% endif %}">
+          
+          <a href="{{ url_for('profile') }}" class="text-decoration-none me-0">
+              <img src="{{ url_for('static', filename='user-solid-full.svg') }}" 
+              alt="User Profile" 
+              class="me-2"
+              style="width: 28px; height: 28px; cursor: pointer;" 
+              data-bs-toggle="tooltip" 
+              data-bs-placement="bottom" 
+              title="{% if current_user.role == 'admin' %}Super User Administrator{% else %}Blood Donations: {{ user_stats.donations }} | Blood Requests: {{ user_stats.requests }}{% endif %}">
+            </a>
 
-            <span class="me-3"><strong>{{ current_user.username }}</strong>!</span>
+              <span class="me-3"><strong>{{ current_user.username }}</strong></span>
             <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
         </div>
         {% endif %}
