@@ -402,11 +402,20 @@ def blood_donation():
             active_donation = latest_donation
 
     form = DonationForm()
+    # SELF-COMPILE FORM
     if request.method == 'GET':
-        form.name.data = current_user.username
+        form.name.data = current_user.username.title()
         form.email.data = current_user.email
+        if current_user.blood_group:
+            # Convert to uppercase to match the BLOOD_CHOICES in forms.py
+            form.blood_groups.data = current_user.blood_group.upper()
     
     if form.validate_on_submit() and not active_donation:
+        # - PROFILE SELF-SAVE LOGIC ---
+        # If the blood type in the profile is empty, we update it with that of the form
+        if not current_user.blood_group:
+            current_user.blood_group = form.blood_groups.data.lower()
+            
         # Age validation check
         if form.age.data < 18:
             flash("Legal requirement: You must be at least 18 years old to donate blood.", "danger")
@@ -471,6 +480,17 @@ def blood_receive():
             active_request = latest_request
             
     form = RequestForm()
+    # SELF-COMPILE FORM
+    if request.method == 'GET' and not active_request:
+        form.name.data = current_user.username.title()
+        form.email.data = current_user.email
+        if current_user.blood_group:
+            form.blood_groups.data = current_user.blood_group.upper()
+            
+    if form.validate_on_submit() and not active_request:
+       # - PROFILE SELF-SAVE LOGIC ----
+        if not current_user.blood_group:
+            current_user.blood_group = form.blood_groups.data.lower()
     
     # If there's an active request blocking the UI, render the status view immediately
     if active_request:
