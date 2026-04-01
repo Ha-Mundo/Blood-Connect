@@ -17,7 +17,8 @@ def seed():
                 email="test@mail.com", 
                 password=default_pw, 
                 role="user",
-                is_verified=True  # Now pre-verified
+                is_verified=True,
+                blood_group="o+"
             ))
 
         # 2. Donors data
@@ -55,7 +56,8 @@ def seed():
                     email=data['email'],
                     password=default_pw,
                     role="user",
-                    is_verified=True # Pre-verified for testing
+                    is_verified=True,
+                    blood_group=data['blood_groups']
                 )
                 db.session.add(new_user)
 
@@ -65,6 +67,7 @@ def seed():
                     **data, 
                     latest_donation=today, 
                     next_donation=next_d, 
+                    donation_counter=1,
                     status='Pending'
                 ))
                 new_entries += 1
