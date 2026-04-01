@@ -3,7 +3,12 @@
 <div class="container-fluid mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>🏥 Blood Requests Database</h2>
-        <span class="badge bg-danger fs-5">Total Requests: {{ all_requests_counter }}</span>
+        <div class="d-flex justify-content-center align-items-center">
+            <a href="{{ url_for('export_csv', table_type='requests') }}" class="fw-bold btn btn-success py-1 px-3 me-2">
+                <i class="fas fa-file-csv"></i>Download CSV
+            </a>
+            <span class="badge bg-danger fs-5 py-2">Total Requests: {{ all_requests_counter }}</span>
+        </div>
     </div>
     <!-- Blood Requests Search Bar -->
     <div class="card mb-4 border-0 shadow-sm">
