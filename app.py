@@ -1,7 +1,9 @@
 import os
+import csv
 import datetime
+from io import StringIO
 from datetime import timedelta
-from flask import Flask, render_template, redirect, url_for, flash, request, abort
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
@@ -861,6 +863,65 @@ def toggle_user(user_id):
         flash(f"User {user.username} has been {status}.", "success")
     
     return redirect(request.referrer or url_for('all_users_db'))
+
+@app.route("/export_csv/<string:table_type>")
+@login_required
+@limiter.exempt
+def export_csv(table_type):
+    """Admin only: Download database tables as CSV"""
+    if current_user.role != 'admin':
+        abort(403)
+
+    # Create an in-memory file
+    si = StringIO()
+    cw = csv.writer(si)
+
+    if table_type == 'donations':
+        records = BloodDonation.query.all()
+        
+        # Column headers
+        cw.writerow([
+            'ID', 'Name', 'Email', 'Age',
+            'Blood Group', 'City', 'Status',
+            'Latest Donation', 'Next Donation'
+        ])
+
+        # Data rows
+        for r in records:
+            cw.writerow([
+                r.id, r.name, r.email, r.age,
+                r.blood_groups, r.city, r.status,
+                r.latest_donation, r.next_donation
+            ])
+
+        filename = "donations_export.csv"
+
+    elif table_type == 'requests':
+        records = BloodRequest.query.all()
+        
+        # Column headers (adjust based on your actual model)
+        cw.writerow([
+            'ID', 'Recipient Name', 'Requester Email',
+            'Blood Group', 'City', 'Status', 'Request Date'
+        ])
+
+        # Data rows
+        for r in records:
+            cw.writerow([
+                r.id, r.recipient_name, r.requester_email,
+                r.blood_groups, r.city, r.status, r.request_date
+            ])
+
+        filename = "requests_export.csv"
+
+    else:
+        abort(404)
+
+    # Prepare the HTTP response for file download
+    output = Response(si.getvalue(), mimetype='text/csv')
+    output.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    
+    return output
 
 if __name__ == '__main__':
     with app.app_context():
