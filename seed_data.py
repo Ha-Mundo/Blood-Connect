@@ -68,7 +68,7 @@ def seed():
                     latest_donation=today, 
                     next_donation=next_d, 
                     donation_counter=1,
-                    status='Pending'
+                    status='Approved'
                 ))
                 new_entries += 1
         
