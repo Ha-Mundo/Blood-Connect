@@ -414,9 +414,10 @@ def blood_donation():
     
     if form.validate_on_submit() and not active_donation:
         # - PROFILE SELF-SAVE LOGIC ---
+        real_user = User.query.get(current_user.id)
         # If the blood type in the profile is empty, we update it with that of the form
-        if not current_user.blood_group:
-            current_user.blood_group = form.blood_groups.data.lower()
+        if not real_user.blood_group:
+            real_user.blood_group = form.blood_groups.data.lower()
             
         # Age validation check
         if form.age.data < 18:
@@ -491,8 +492,11 @@ def blood_receive():
             
     if form.validate_on_submit() and not active_request:
        # - PROFILE SELF-SAVE LOGIC ----
-        if not current_user.blood_group:
-            current_user.blood_group = form.blood_groups.data.lower()
+        real_user = User.query.get(current_user.id)
+        
+        if not real_user.blood_group:
+            real_user.blood_group = form.blood_groups.data.lower()
+            db.session.commit()
     
     # If there's an active request blocking the UI, render the status view immediately
     if active_request:
