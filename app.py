@@ -413,12 +413,6 @@ def blood_donation():
             form.blood_groups.data = current_user.blood_group.upper()
     
     if form.validate_on_submit() and not active_donation:
-        # - PROFILE SELF-SAVE LOGIC ---
-        real_user = User.query.get(current_user.id)
-        # If the blood type in the profile is empty, we update it with that of the form
-        if not real_user.blood_group:
-            real_user.blood_group = form.blood_groups.data.lower()
-            
         # Age validation check
         if form.age.data < 18:
             flash("Legal requirement: You must be at least 18 years old to donate blood.", "danger")
@@ -468,48 +462,55 @@ def cancel_donation(id):
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
 def blood_receive():
-    """ Search for donors or view current pending request """
+    """ Search for donors and log blood requests """
     
-    # 1. Fetch the user's most recent request
+    # Fetch the user's most recent request
     latest_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
     
     force_form = request.args.get('new') == '1'
     active_request = None
     
     if latest_request and not force_form:
-        # Show status view for ongoing or failed requests. 
-        # If 'Fulfilled' / 'Cancelled', active_request remains None so the form resets automatically.
         if latest_request.status in ['Pending', 'Approved', 'Unsuccessful']:
             active_request = latest_request
             
     form = RequestForm()
-    # SELF-COMPILE FORM
+    
+    # PRE-FILL FORM FROM PROFILE
     if request.method == 'GET' and not active_request:
         form.name.data = current_user.username.title()
         form.email.data = current_user.email
         if current_user.blood_group:
             form.blood_groups.data = current_user.blood_group.upper()
             
+    # FORM SUBMISSION LOGIC
     if form.validate_on_submit() and not active_request:
-       # - PROFILE SELF-SAVE LOGIC ----
-        real_user = User.query.get(current_user.id)
+        # Create the request record in the database
+        new_request = BloodRequest(
+            recipient_name=form.name.data.lower(),
+            requester_email=current_user.email.lower(),
+            blood_groups=form.blood_groups.data.lower(),
+            city=form.city.data.lower(),
+            status='Pending'
+        )
+        db.session.add(new_request)
+        db.session.commit()
         
-        if not real_user.blood_group:
-            real_user.blood_group = form.blood_groups.data.lower()
-            db.session.commit()
+        # Redirect to the GET search using the submitted parameters
+        return redirect(url_for('blood_receive', city=form.city.data.lower(), bg=form.blood_groups.data.lower()))
     
-    # If there's an active request blocking the UI, render the status view immediately
+    # Block UI if there's an active request
     if active_request:
         return render_template('find_blood.html', form=form, active_request=active_request)
 
-    # 2. Search logic (only runs if NO active requests)
-    city = request.form.get('city') or request.args.get('city')
-    bg = request.form.get('blood_groups') or request.args.get('bg')
+    # SEARCH LOGIC (Executed via GET parameters after redirect)
+    city = request.args.get('city')
+    bg = request.args.get('bg')
     
     if city and bg:
         page = request.args.get('page', 1, type=int)
         
-       # Only search for donations that are 'Approved'
+        # Only search for donations that are 'Approved'
         pagination = BloodDonation.query.filter_by(
             blood_groups=bg.lower(),
             city=city.lower(),
