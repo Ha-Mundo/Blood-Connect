@@ -712,7 +712,20 @@ def all_requests_db():
     pagination = query.order_by(BloodRequest.id.desc()).paginate(page=page, per_page=10, error_out=False)
     count = query.count()
     
-    return render_template('request_db.html', pagination=pagination, all_requests_counter=count)
+    # Create a mapping of donor emails to names
+    donor_names = {}
+    emails_to_fetch = [req.donor_email for req in pagination.items if req.donor_email]
+    
+    if emails_to_fetch:
+        # Fetch donors matching the emails in the current pagination view
+        donors = BloodDonation.query.filter(BloodDonation.email.in_(emails_to_fetch)).all()
+        # Map email -> name (e.g., {"donor@mail.com": "John Doe"})
+        donor_names = {d.email: d.name for d in donors}
+    
+    return render_template('request_db.html', 
+                           pagination=pagination, 
+                           all_requests_counter=query.count(),
+                           donor_names=donor_names) # Pass the dictionary to the template
 
 @app.route("/update_request_status/<int:id>", methods=['POST'])
 @login_required
