@@ -69,16 +69,13 @@
     </div>
 
     <!-- Flash messages -->
-    <div class="container mt-3">
+    <div id="flash-container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-
-            <!-- Bootstrap 5 close button -->
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-lg" role="alert">
+              {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-
           </div>
         {% endfor %}
       {% endif %}
@@ -101,6 +98,15 @@
       // Initialize all tooltips on the page
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
       const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el))
+
+      // Flash messages timeout
+      setTimeout(function() {
+          let alerts = document.querySelectorAll('#flash-container .alert');
+          alerts.forEach(function(alert) {
+              let bsAlert = new bootstrap.Alert(alert);
+              bsAlert.close();
+          });
+      }, 5000); // 5000ms = 5 sec
     </script>
 
   </body>
