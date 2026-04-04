@@ -83,8 +83,11 @@
                             <td>{{ req.request_date.strftime('%d/%m/%Y') }}</td>
                             <td>
                             {% if req.donor_email %}
-                                <div class="small fw-bold">{{ req.donor_email }}</div>
-                                <span class="text-muted" style="font-size: 0.8rem;">Matched Donor</span>
+                                <div class="fw-bold text-capitalize">
+                                    {# Look up the name in the dictionary, fallback to 'Unknown' if not found #}
+                                    {{ donor_names.get(req.donor_email, "Unknown Donor") }}
+                                </div>
+                                <div class="small text-muted">{{ req.donor_email }}</div>
                             {% else %}
                                 <span class="text-muted small">No match yet</span>
                             {% endif %}
