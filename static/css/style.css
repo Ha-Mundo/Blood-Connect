@@ -26,7 +26,7 @@ form {
 
 .floating-back-btn {
         position: fixed;
-        bottom: 89px;
+        bottom: 30px;
         right: 30px;
         z-index: 1000;
         border-radius: 50px;
@@ -381,7 +381,7 @@ footer p {
 /* flash messages container*/
 #flash-container {
     position: fixed;
-    bottom: 20px;
+    bottom: 70px;
     right: 20px;
     z-index: 1050; 
     width: 350px;  
