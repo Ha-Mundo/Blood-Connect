@@ -377,3 +377,23 @@ footer p {
         font-size: 1.55rem;
     }
 }
+
+/* flash messages container*/
+#flash-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050; 
+    width: 350px;  
+    max-width: 90vw;
+}
+
+/* Alert fluid animation*/
+.alert {
+    margin-bottom: 10px;
+    border-left: 5px solid; /* Opzionale: aggiunge un tocco di colore al bordo */
+}
+
+.alert-success { border-left-color: #198754; }
+.alert-danger { border-left-color: #dc3545; }
+.alert-warning { border-left-color: #ffc107; }
