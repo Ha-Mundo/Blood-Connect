@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
 
     <!-- Custom stylesheet -->
-    <link href="../static/style.css" type="text/css" rel="stylesheet" />
+    <link href="../static/css/style.css" type="text/css" rel="stylesheet" />
 
     <title>Blood Donation System</title>
     {% endblock %}
@@ -35,7 +35,7 @@
     <nav class="navbar">
       <a href="{{ url_for('home') }}" class="text-decoration-none">
         <span class="m-3">
-          <img src="/static/BDS.png" class="blogo">
+          <img src="/static/icons/BDS.png" class="blogo">
           <h2 class="display-7 header">Blood Donation System</h2>
         </span>
       </a>
@@ -45,7 +45,7 @@
         <div class="d-flex align-items-center">
           
           <a href="{{ url_for('profile') }}" class="text-decoration-none me-0">
-              <img src="{{ url_for('static', filename='user-solid-full.svg') }}" 
+              <img src="{{ url_for('static', filename='icons/user-solid-full.svg') }}" 
               alt="User Profile" 
               class="me-2"
               style="width: 28px; height: 28px; cursor: pointer;" 
@@ -85,7 +85,7 @@
     <!-- Footer -->
     <footer class="mt-auto">
       <div class="text-center">     
-        <img src="/static/BDS.png" class="blogofot">
+        <img src="/static/icons/BDS.png" class="blogofot">
         <p>Blood Donation System &copy; 2019</p>
      </div>
     </footer>
