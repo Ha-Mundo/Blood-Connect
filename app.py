@@ -462,64 +462,60 @@ def cancel_donation(id):
 @app.route("/blood_receive", methods=['GET', 'POST'])
 @login_required
 def blood_receive():
-    """ Search for donors and log blood requests """
+    """ Search for donors. Database logging is handled by 'take_donation' upon selection. """
     
-    # Fetch the user's most recent request
+    # 1. Fetch the user's most recent request to check for active/pending status
     latest_request = BloodRequest.query.filter_by(requester_email=current_user.email).order_by(BloodRequest.id.desc()).first()
     
     force_form = request.args.get('new') == '1'
     active_request = None
     
+    # Logic to lock the UI if a request is already in progress
     if latest_request and not force_form:
         if latest_request.status in ['Pending', 'Approved', 'Unsuccessful']:
             active_request = latest_request
             
     form = RequestForm()
     
-    # PRE-FILL FORM FROM PROFILE
+    # PRE-FILL FORM FROM PROFILE (GET requests only)
     if request.method == 'GET' and not active_request:
         form.name.data = current_user.username.title()
         form.email.data = current_user.email
         if current_user.blood_group:
             form.blood_groups.data = current_user.blood_group.upper()
             
-    # FORM SUBMISSION LOGIC
+    # FORM SUBMISSION: We only redirect to the search view, no DB insertion here!
     if form.validate_on_submit() and not active_request:
-        # Create the request record in the database
-        new_request = BloodRequest(
-            recipient_name=form.name.data.lower(),
-            requester_email=current_user.email.lower(),
-            blood_groups=form.blood_groups.data.lower(),
-            city=form.city.data.lower(),
-            status='Pending'
-        )
-        db.session.add(new_request)
-        db.session.commit()
+        # Safe extraction to prevent AttributeError if fields are disabled/empty
+        r_city = (form.city.data or "").lower()
+        r_bg = (form.blood_groups.data or "").lower()
         
-        # Redirect to the GET search using the submitted parameters
-        return redirect(url_for('blood_receive', city=form.city.data.lower(), bg=form.blood_groups.data.lower()))
+        # Redirect to the same route with GET parameters to trigger the search logic below
+        return redirect(url_for('blood_receive', city=r_city, bg=r_bg))
     
-    # Block UI if there's an active request
+    # If there is an active request record, show the status view instead of the search
     if active_request:
         return render_template('find_blood.html', form=form, active_request=active_request)
 
-    # SEARCH LOGIC (Executed via GET parameters after redirect)
+    # SEARCH LOGIC: Triggered by GET parameters (city and bg)
     city = request.args.get('city')
     bg = request.args.get('bg')
     
     if city and bg:
         page = request.args.get('page', 1, type=int)
         
-        # Only search for donations that are 'Approved'
+        # Search for donors with 'Approved' status matching the criteria
         pagination = BloodDonation.query.filter_by(
             blood_groups=bg.lower(),
             city=city.lower(),
             status='Approved' 
         ).paginate(page=page, per_page=10, error_out=False)
         
+        # Show empty state if no donors are found
         if not pagination.items:
             return render_template('empty_db.html')
             
+        # Pass results to the template where the user can finally trigger 'take_donation'
         return render_template('results.html', pagination=pagination, city=city, bg=bg)
                                
     return render_template('find_blood.html', form=form, active_request=None)
