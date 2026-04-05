@@ -76,7 +76,7 @@
                     </td>
                     <td class="text-center" style="width: 120px;">
                         {% if user.id != current_user.id and user.role != 'admin' %}
-                            <form action="{{ url_for('toggle_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                            <form action="{{ url_for('toggle_user', user_id=user.id) }}" method="POST" style="display:inline;" class="class="ajax-form m-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" style="width: 85px;" class="btn btn-sm {{ 'btn-outline-danger' if user.is_active else 'btn-outline-success' }}">
                                     {{ 'Ban' if user.is_active else 'Unban' }}

@@ -105,7 +105,7 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
-                                    <form action="{{ url_for('update_request_status', id=req.id) }}" method="POST" class="m-0">
+                                    <form action="{{ url_for('update_request_status', id=req.id) }}" method="POST" class="ajax-form m-0">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         
                                         <button name="new_status" value="Completed" class="btn btn-outline-primary btn-sm" title="Mark Completed">
