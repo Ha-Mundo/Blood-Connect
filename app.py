@@ -254,7 +254,7 @@ def confirm_email(token):
         db.session.commit()
         flash("Account confirmed successfully! You can now log in.", "success")
         
-    return redirect(url_for('login'))
+    return render_template('verified_success.html')
 
 @app.route("/logout")
 @login_required
