@@ -21,25 +21,41 @@ function toggleConfirm(show){
     document.getElementById('confirm-view').style.display =
         show ? 'block' : 'none';
 }
-/**
- * Scroll Persistence Utility
- * Saves the vertical scroll position before form submissions 
- * and restores it after the page reloads.
- */
-document.addEventListener("DOMContentLoaded", function() {
-    // 1. Capture scroll position on any form submission
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function() {
-            sessionStorage.setItem('scrollPosition', window.scrollY);
-        });
-    });
 
-    // 2. Restore scroll position if found in session storage
-    const scrollPosition = sessionStorage.getItem('scrollPosition');
-    if (scrollPosition) {
-        // Use a slight timeout to ensure content is rendered before scrolling
-        window.scrollTo(0, parseInt(scrollPosition));
-        sessionStorage.removeItem('scrollPosition');
+/**
+ * Asynchronous Form Submission (AJAX)
+ * Prevents full page reloads and visual flickering on admin actions.
+ */
+document.addEventListener("submit", async function(e) {
+    // Apply only to forms with the 'ajax-form' class
+    const form = e.target.closest('.ajax-form');
+    if (!form) return;
+
+    e.preventDefault(); // Prevents the physical page reload
+
+    // Collects form data and the specific clicked submit button
+    const submitter = e.submitter;
+    const formData = new FormData(form);
+    if (submitter && submitter.name) {
+        formData.append(submitter.name, submitter.value);
+    }
+
+    try {
+        // Sends data to Flask in the background
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: formData
+        });
+
+        if (response.ok) {
+            // Extracts the new HTML returned by Flask (after redirect)
+            const html = await response.text();
+            
+            // Replaces the body content invisibly
+            const newDoc = new DOMParser().parseFromString(html, "text/html");
+            document.body.innerHTML = newDoc.body.innerHTML;
+        }
+    } catch (error) {
+        console.error("Error during the action:", error);
     }
 });
