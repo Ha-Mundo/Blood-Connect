@@ -33,7 +33,7 @@
     
     <!-- Navigation bar -->
     <nav class="navbar">
-      <a href="{{ url_for('home') }}" class="text-decoration-none">
+      <a href="{{ url_for('main.home') }}" class="text-decoration-none">
         <span class="m-3">
           <img src="/static/icons/BDS.png" class="blogo">
           <h2 class="display-7 header">Blood Donation System</h2>
@@ -44,7 +44,7 @@
               {% if current_user.is_authenticated %}
         <div class="d-flex align-items-center">
           
-          <a href="{{ url_for('profile') }}" class="text-decoration-none me-0">
+          <a href="{{ url_for('main.profile') }}" class="text-decoration-none me-0">
               <img src="{{ url_for('static', filename='icons/user-solid-full.svg') }}" 
               alt="User Profile" 
               class="me-2"
@@ -55,7 +55,7 @@
             </a>
 
               <span class="me-3"><strong>{{ current_user.username }}</strong></span>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
         </div>
         {% endif %}
     </nav>

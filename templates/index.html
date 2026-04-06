@@ -8,11 +8,11 @@
         {% if not current_user.is_authenticated %}
 
             <div class="col-lg-12">
-                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('login') }}">
+                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('auth.login') }}">
                     Login 
                 </a>
 
-                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('register') }}">
+                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('auth.register') }}">
                     Register
                 </a>
             </div>
