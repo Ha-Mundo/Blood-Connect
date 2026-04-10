@@ -7,6 +7,10 @@ from app.security import generate_confirmation_token
 
 
 class AuthService:
+    
+    @staticmethod
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email.lower()).first()
 
     @staticmethod
     def authenticate(email, password):
