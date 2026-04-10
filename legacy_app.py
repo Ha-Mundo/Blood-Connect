@@ -15,8 +15,8 @@ from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 
 # Local imports
-from forms import DonationForm, RequestForm, RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm
-from time_limit import threshold_donation, threshold_request, is_action_allowed
+from app.forms import DonationForm, RequestForm, RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm
+from app.time_limit import threshold_donation, threshold_request, is_action_allowed
 
 # 1. INITIALIZATION & CONFIG
 load_dotenv()
