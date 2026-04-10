@@ -1,4 +1,4 @@
-from app import app, db, User, BloodDonation, bcrypt
+from app.services import app, db, User, BloodDonation, bcrypt
 import datetime
 
 def seed():

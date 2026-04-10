@@ -1,2 +1,2 @@
-from app import app
+from app.services import app
 app = app

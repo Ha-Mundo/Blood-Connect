@@ -1,4 +1,4 @@
-from app import app, db, User, bcrypt
+from app.services import app, db, User, bcrypt
 import getpass
 
 def create_admin():
