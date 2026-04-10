@@ -22,14 +22,14 @@ def create_app(config_class=Config):
         return User.query.get(int(user_id))
 
     # Register Blueprints 
-    # from app.main.routes import main
-    # from app.auth.routes import auth
-    # from app.admin.routes import admin
-    # from app.donations.routes import donations
+    from app.main.routes import main
+    from app.auth.routes import auth
+    from app.admin.routes import admin
+    from app.blood_operations.routes import blood_ops
     
-    # app.register_blueprint(main)
-    # app.register_blueprint(auth)
-    # app.register_blueprint(admin)
-    # app.register_blueprint(donations)
+    app.register_blueprint(main)
+    app.register_blueprint(auth)
+    app.register_blueprint(admin)
+    app.register_blueprint(blood_ops)
 
     return app
