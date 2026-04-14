@@ -1,7 +1,7 @@
 import csv
 from datetime import date, timedelta
 from io import StringIO
-
+from flask import abort
 from app.extensions import db
 from app.models import User, BloodDonation, BloodRequest
 
@@ -60,19 +60,24 @@ class AdminService:
 
         return pagination, count, donor_names
 
+    from flask import abort
+
     @staticmethod
     def toggle_user(user_id):
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id)
+
+        if not user:
+            abort(404)
 
         if user.role == "admin":
-            return None, None, None, "You cannot ban another administrator!"
+            return user, "You cannot ban another administrator!"
 
         user.is_active = not user.is_active
 
         if not user.is_active:
-            BloodDonation.query.filter_by(email=user.email, status="Pending").update(
-                {"status": "Cancelled"}
-            )
+            BloodDonation.query.filter_by(
+                email=user.email, status="Pending"
+            ).update({"status": "Cancelled"})
 
             pending_requests = BloodRequest.query.filter_by(
                 requester_email=user.email,
@@ -85,6 +90,7 @@ class AdminService:
                     blood_groups=req.blood_groups,
                     status="Claimed"
                 ).first()
+
                 if donation:
                     donation.status = "Pending"
 
@@ -92,10 +98,13 @@ class AdminService:
 
         db.session.commit()
 
-        action = "suspended" if not user.is_active else "reactivated"
-        status_text = "banned and their active records cleared" if not user.is_active else "activated"
+        status_text = (
+            "banned and their active records cleared"
+            if not user.is_active
+            else "activated"
+        )
 
-        return user, action, status_text, None
+        return user, status_text
 
     @staticmethod
     def build_csv(table_type):
@@ -104,31 +113,20 @@ class AdminService:
 
         if table_type == "donations":
             records = BloodDonation.query.all()
-            cw.writerow([
-                "ID", "Name", "Email", "Age", "Blood Group", "City",
-                "Status", "Latest Donation", "Next Donation"
-            ])
+            cw.writerow(['ID', 'Name', 'Email', 'Age', 'Blood Group', 'City', 'Status', 'Latest Donation', 'Next Donation'])
             for r in records:
-                cw.writerow([
-                    r.id, r.name, r.email, r.age, r.blood_groups,
-                    r.city, r.status, r.latest_donation, r.next_donation
-                ])
-            return si.getvalue(), "donations_export.csv"
+                cw.writerow([r.id, r.name, r.email, r.age, r.blood_groups, r.city, r.status, r.latest_donation, r.next_donation])
 
-        if table_type == "requests":
+        elif table_type == "requests":
             records = BloodRequest.query.all()
-            cw.writerow([
-                "ID", "Recipient Name", "Requester Email", "Blood Group",
-                "City", "Status", "Request Date"
-            ])
+            cw.writerow(['ID', 'Recipient Name', 'Requester Email', 'Blood Group', 'City', 'Status', 'Request Date'])
             for r in records:
-                cw.writerow([
-                    r.id, r.name, r.requester_email, r.blood_groups,
-                    r.city, r.status, r.request_date
-                ])
-            return si.getvalue(), "requests_export.csv"
+                cw.writerow([r.id, r.name, r.requester_email, r.blood_groups, r.city, r.status, r.request_date])
 
-        raise ValueError("Invalid table type")
+        else:
+            raise ValueError("Invalid table type")
+
+        return si.getvalue()
 
     @staticmethod
     def cleanup_records():
