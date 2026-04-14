@@ -51,7 +51,7 @@ def test_toggle_user_changes_active_status(app, db_session):
         db_session.add(user)
         db_session.commit()
 
-        updated_user, message = AdminService.toggle_user(user)
+        updated_user, message = AdminService.toggle_user(user.id)
 
         assert updated_user.is_active is False
         assert "banned" in message.lower()
@@ -64,7 +64,7 @@ def test_toggle_user_prevents_admin_ban(app, db_session):
         db_session.add(admin)
         db_session.commit()
 
-        updated_user, message = AdminService.toggle_user(admin)
+        updated_user, message = AdminService.toggle_user(admin.id)
 
         assert updated_user.is_active is True
         assert "cannot ban" in message.lower() 
