@@ -86,8 +86,7 @@ def test_take_donation_prevents_self_request(app, db_session):
 
         result, error = BloodService.take_donation(
             donation=donation,
-            user=user,
-            today=date.today()
+            user=user
         )
 
         assert result is None
