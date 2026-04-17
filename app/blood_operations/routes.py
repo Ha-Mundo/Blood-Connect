@@ -117,7 +117,7 @@ def take_donation():
 
     if error:
         flash(error, "danger" if "Safety" in error else "warning")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
 
     flash("Request successful! Notification sent.", "success")
     return redirect(url_for('blood_ops.blood_request'))

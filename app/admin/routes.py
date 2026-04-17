@@ -61,7 +61,7 @@ def donations_db():
 
 
 @admin_bp.route("/requests")
-def request_db():
+def requests_db():
     page = request.args.get("page", 1, type=int)
     search = request.args.get("search")
     blood_group = request.args.get("blood_group")
@@ -75,7 +75,7 @@ def request_db():
     )
 
     return render_template(
-        "request_db.html",
+        "requests_db.html",
         pagination=pagination,
         all_requests_counter=count,
         donor_names=donor_names
@@ -84,12 +84,12 @@ def request_db():
 
 @admin_bp.route("/update_donation_status/<int:id>", methods=["POST"])
 def update_donation_status(id):
-    return request_db()
+    return requests_db()
 
 
 @admin_bp.route("/update_request_status/<int:id>", methods=["POST"])
 def update_request_status(id):
-    return request_db()
+    return requests_db()
 
 
 @admin_bp.route("/update_users_status/<int:user_id>", methods=["POST"])
