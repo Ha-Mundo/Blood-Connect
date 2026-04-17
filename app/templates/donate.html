@@ -45,7 +45,7 @@
                             <div class="alert alert-warning py-2 mt-2 mb-3">
                                 <strong>Notice:</strong> Your previous request was marked as {{ active_donation.status }}.
                             </div>
-                            <a href="{{ url_for('blood_donation', new='1') }}" class="btn btn-primary btn-sm mt-1">
+                            <a href="{{ url_for('blood_ops.donate_blood', new='1') }}" class="btn btn-primary btn-sm mt-1">
                                 Make a new donation attempt
                             </a>
                             
@@ -71,7 +71,7 @@
 
                         <div class="d-flex justify-content-center gap-2">
 
-                            <form action="{{ url_for('cancel_donation', id=active_donation.id) }}" method="POST">
+                            <form action="{{ url_for('blood_ops.cancel_donation', id=active_donation.id) }}" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-danger">
                                     Yes, Cancel it
