@@ -58,7 +58,7 @@
                         <p class="text-muted mb-4">
                             Optimize the database by permanently removing 'Cancelled' and 'Unsuccessful' records older than 30 days.
                         </p>
-                        <form action="{{ url_for('admin_cleanup') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete old records? This cannot be undone.');">
+                        <form action="{{ url_for('admin.cleanup_records') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete old records? This cannot be undone.');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="btn btn-outline-danger w-100">
                                 <i class="fas fa-trash-alt me-2"></i>Run Database Pruning

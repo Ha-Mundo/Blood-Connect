@@ -36,7 +36,7 @@
 
                     <td class="align-middle">
                         <div class="d-flex align-items-center" style="height:100%;">
-                            <form action="{{ url_for('take_donation') }}" method="POST" class="m-0 w-100">
+                            <form action="{{ url_for('blood_ops.take_donation') }}" method="POST" class="m-0 w-100">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="id" value="{{ blood_donation.id }}">
                                 <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
@@ -56,13 +56,13 @@
     <nav aria-label="Donation results pages" class="mt-4">
         <ul class="pagination d-flex justify-content-center align-items-center gap-2">
             <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('blood_receive', page=pagination.prev_num, city=city, bg=bg) if pagination.has_prev else '#' }}">Previous</a>
+                <a class="page-link rounded" href="{{ url_for('blood_ops.blood_request', page=pagination.prev_num, city=city, bg=bg) if pagination.has_prev else '#' }}">Previous</a>
             </li>
             
             {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
                 {% if page_num %}
                     <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a class="page-link rounded" href="{{ url_for('blood_receive', page=page_num, city=city, bg=bg) }}">{{ page_num }}</a>
+                        <a class="page-link rounded" href="{{ url_for('blood_ops.blood_request', page=page_num, city=city, bg=bg) }}">{{ page_num }}</a>
                     </li>
                 {% else %}
                     <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -70,14 +70,14 @@
             {% endfor %}
 
             <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('blood_receive', page=pagination.next_num, city=city, bg=bg) if pagination.has_next else '#' }}">Next</a>
+                <a class="page-link rounded" href="{{ url_for('blood_ops.blood_request', page=pagination.next_num, city=city, bg=bg) if pagination.has_next else '#' }}">Next</a>
             </li>
         </ul>
     </nav>
 
     <!-- Back button -->
     <div class="text-end mt-3">
-        <a class="btn btn-secondary floating-back-btn" href="/blood_receive">Back</a>
+        <a class="btn btn-secondary floating-back-btn" href="{{ url_for('blood_ops.blood_request') }}">Back</a>
     </div>
 
 </div>
