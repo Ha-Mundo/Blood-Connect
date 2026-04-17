@@ -8,11 +8,11 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/x-icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="manifest" type="image/x-icon" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
 
     <!-- Custom stylesheet -->
-    <link href="../static/css/style.css" type="text/css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <title>Blood Donation System</title>
     {% endblock %}
@@ -35,7 +35,7 @@
     <nav class="navbar">
       <a href="{{ url_for('main.home') }}" class="text-decoration-none">
         <span class="m-3">
-          <img src="/static/icons/BDS.png" class="blogo">
+          <img rel="icon" src="{{ url_for('static', filename='icons/BDS.png') }}" class="blogo">
           <h2 class="display-7 header">Blood Donation System</h2>
         </span>
       </a>
