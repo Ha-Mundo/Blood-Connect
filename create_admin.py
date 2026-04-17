@@ -1,5 +1,9 @@
-from app.services import app, db, User, bcrypt
+from app import create_app
+from app.extensions import db, bcrypt
+from app.models import User
 import getpass
+
+app = create_app()
 
 def create_admin():
     """ Script to create an administrative user via terminal """

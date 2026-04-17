@@ -1,5 +1,10 @@
-from app.services import app, db, User, BloodDonation, bcrypt
+from app import create_app
+from app.extensions import db, bcrypt
+from app.models import User, BloodDonation
+
 import datetime
+
+app = create_app()
 
 def seed():
     with app.app_context():
