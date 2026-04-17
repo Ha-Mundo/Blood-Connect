@@ -9,19 +9,31 @@ class MainService:
         stats = {
             'donations': 0,
             'requests': 0,
-            'total_available': BloodDonation.query.filter_by(status='Approved').count()
+            'total_available': 0
         }
 
-        if user.is_authenticated:
-            stats['donations'] = BloodDonation.query.filter_by(
-                email=user.email,
-                status='Completed'
+        # Protection: DB not ready / missing tables
+        try:
+            stats['total_available'] = BloodDonation.query.filter_by(
+                status='Approved'
             ).count()
+        except Exception:
+            stats['total_available'] = 0
 
-            stats['requests'] = BloodRequest.query.filter_by(
-                requester_email=user.email,
-                status='Completed'
-            ).count()
+        if user.is_authenticated:
+            try:
+                stats['donations'] = BloodDonation.query.filter_by(
+                    email=user.email,
+                    status='Completed'
+                ).count()
+
+                stats['requests'] = BloodRequest.query.filter_by(
+                    requester_email=user.email,
+                    status='Completed'
+                ).count()
+            except Exception:
+                stats['donations'] = 0
+                stats['requests'] = 0
 
         return stats
 
