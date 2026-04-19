@@ -102,19 +102,35 @@ def update_donation_status(id):
     if error:
         flash(error, "danger")
     else:
-        if new_status == "Approved":
+        if new_status in ["Approved", "Unsuccessful"]:
             try:
+                subject = ""
+                body = ""
+
+                if new_status == "Approved":
+                    subject = "Blood Donation Approved"
+                    body = (
+                        f"Hello {donation.name.capitalize()},\n\n"
+                        f"Great news! Your blood donation has been Approved. "
+                        f"Thank you for your contribution to the community."
+                    )
+                elif new_status == "Unsuccessful":
+                    subject = "Update regarding your Blood Donation"
+                    body = (
+                        f"Hello {donation.name.capitalize()},\n\n"
+                        f"We are writing to inform you that your recent blood donation "
+                        f"status has been marked as Unsuccessful. \n"
+                        f"Please contact our center if you have any questions."
+                    )
+
                 msg = Message(
-                    "Blood Donation Approved",
+                    subject,
                     sender=current_app.config["MAIL_DEFAULT_SENDER"],
                     recipients=[donation.email],
                 )
-                msg.body = (
-                    f"Hello {donation.name.capitalize()},\n\n"
-                    f"Great news! Your blood donation has been Approved. "
-                    f"Thank you for your contribution to the community."
-                )
+                msg.body = body
                 mail.send(msg)
+                
             except Exception:
                 flash("Status updated, but email notification failed to send.", "warning")
 
