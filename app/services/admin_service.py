@@ -172,18 +172,41 @@ class AdminService:
         return None, donation
 
     @staticmethod
-    def update_request_status(request_id):
-        request = db.session.get(BloodRequest, request_id)
+    def update_request_status(request_id, new_status):
+        blood_req = db.session.get(BloodRequest, request_id)
 
-        if not request:
-            abort(404)
+        if not blood_req:
+            return "Request not found.", None
 
-        if request.status == "Pending":
-            request.status = "Approved"
-        elif request.status == "Approved":
-            request.status = "Completed"
+        allowed_statuses = ['Pending', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
 
+        if new_status not in allowed_statuses:
+            return "Invalid status update.", None
+
+        # --- SYNCHRONIZATION LOGIC ---
+
+        if new_status in ['Cancelled', 'Unsuccessful']:
+            donation = BloodDonation.query.filter_by(
+                email=blood_req.donor_email,
+                blood_groups=blood_req.blood_groups,
+                status='Claimed'
+            ).first()
+            if donation:
+                donation.status = 'Pending'
+
+        elif new_status == 'Completed':
+            donation = BloodDonation.query.filter_by(
+                email=blood_req.donor_email,
+                blood_groups=blood_req.blood_groups,
+                status='Claimed'
+            ).first()
+            if donation:
+                donation.status = 'Completed'
+
+        blood_req.status = new_status
         db.session.commit()
+
+        return None, blood_req
 
     @staticmethod
     def build_csv(table_type):

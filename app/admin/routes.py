@@ -140,8 +140,47 @@ def update_donation_status(id):
 
 @admin_bp.route("/update_request_status/<int:id>", methods=["POST"])
 def update_request_status(id):
-    AdminService.update_request_status(id)
-    flash("Request status updated.", "success")
+    new_status = request.form.get("new_status")
+
+    if not new_status:
+        abort(400)
+
+    error, blood_req = AdminService.update_request_status(id, new_status)
+
+    if error:
+        flash(error, "danger")
+    else:
+        if new_status in ["Approved", "Unsuccessful"]:
+            try:
+                subject = ""
+                body = ""
+
+                if new_status == "Approved":
+                    subject = "Blood Request Approved"
+                    body = (
+                        f"Hello {blood_req.name.capitalize()},\n\n"
+                        f"Great news! Your blood request has been Approved."
+                    )
+                elif new_status == "Unsuccessful":
+                    subject = "Update regarding your Blood Request"
+                    body = (
+                        f"Hello {blood_req.name.capitalize()},\n\n"
+                        f"Your request was marked as Unsuccessful."
+                    )
+
+                msg = Message(
+                    subject,
+                    sender=current_app.config["MAIL_DEFAULT_SENDER"],
+                    recipients=[blood_req.requester_email],
+                )
+                msg.body = body
+                mail.send(msg)
+
+            except Exception:
+                flash("Status updated, but email notification failed to send.", "warning")
+
+        flash(f"Request #{id} updated to {new_status}.", "success")
+
     return redirect(request.referrer or url_for("admin.requests_db"))
 
 
