@@ -101,7 +101,7 @@ class BloodService:
         ).first()
 
         if donation:
-            donation.status = 'Pending'
+            donation.status = "Approved"
 
         blood_req.status = 'Cancelled'
         db.session.commit()
