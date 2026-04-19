@@ -92,7 +92,7 @@ class AdminService:
                 ).first()
 
                 if donation:
-                    donation.status = "Pending"
+                    donation.status = "Approved"
 
                 req.status = "Cancelled"
 
@@ -105,6 +105,85 @@ class AdminService:
         )
 
         return user, status_text
+    
+    # ===================== DONATIONS =====================
+    @staticmethod
+    def get_donations_page(page, search=None, blood_group=None, status=None, per_page=10):
+        query = BloodDonation.query
+
+        if search:
+            search = search.strip().lower()
+            query = query.filter(
+                (BloodDonation.name.contains(search)) |
+                (BloodDonation.email.contains(search)) |
+                (BloodDonation.city.contains(search))
+            )
+
+        if blood_group:
+            query = query.filter_by(blood_groups=blood_group.lower())
+
+        if status:
+            query = query.filter_by(status=status)
+
+        pagination = query.order_by(BloodDonation.id.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        count = query.count()
+
+        matches = {}
+
+        claimed = [d for d in pagination.items if d.status == "Claimed"]
+
+        if claimed:
+            emails = [d.email for d in claimed]
+
+            requests = BloodRequest.query.filter(
+                BloodRequest.donor_email.in_(emails),
+                BloodRequest.status == "Pending"
+            ).all()
+
+            for req in requests:
+                for d in claimed:
+                    if d.email == req.donor_email and d.blood_groups == req.blood_groups:
+                        matches[d.id] = req
+
+        return pagination, count, matches
+
+    # ===================== STATUS UPDATE =====================
+    @staticmethod
+    def update_donation_status(donation_id, new_status):
+        donation = db.session.get(BloodDonation, donation_id)
+
+        if not donation:
+            return "Donation not found.", None
+
+        allowed_statuses = [
+            "Pending", "Claimed", "Approved",
+            "Completed", "Unsuccessful", "Cancelled"
+        ]
+
+        if new_status not in allowed_statuses:
+            return "Invalid status update.", None
+
+        donation.status = new_status
+        db.session.commit()
+
+        return None, donation
+
+    @staticmethod
+    def update_request_status(request_id):
+        request = db.session.get(BloodRequest, request_id)
+
+        if not request:
+            abort(404)
+
+        if request.status == "Pending":
+            request.status = "Approved"
+        elif request.status == "Approved":
+            request.status = "Completed"
+
+        db.session.commit()
 
     @staticmethod
     def build_csv(table_type):

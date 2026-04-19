@@ -47,18 +47,21 @@ def users_db():
 def donations_db():
     page = request.args.get("page", 1, type=int)
     search = request.args.get("search")
+    blood_group = request.args.get("blood_group")
     status = request.args.get("status")
 
-    pagination, count = AdminService.get_donations_page(
+    pagination, count, matches = AdminService.get_donations_page(
         page=page,
         search=search,
+        blood_group=blood_group,
         status=status
     )
 
     return render_template(
         "donations_db.html",
         pagination=pagination,
-        all_donations_counter=count
+        all_donations_counter=count,
+        matches=matches
     )
 
 
@@ -87,13 +90,37 @@ def requests_db():
 
 
 # ===================== STATUS UPDATES =====================
-
 @admin_bp.route("/update_donation_status/<int:id>", methods=["POST"])
 def update_donation_status(id):
-    AdminService.update_donation_status(id)
-    flash("Donation status updated.", "success")
-    return redirect(request.referrer or url_for("admin.donations_db"))
+    new_status = request.form.get("new_status")
 
+    if not new_status:
+        abort(400)
+
+    error, donation = AdminService.update_donation_status(id, new_status)
+
+    if error:
+        flash(error, "danger")
+    else:
+        if new_status == "Approved":
+            try:
+                msg = Message(
+                    "Blood Donation Approved",
+                    sender=current_app.config["MAIL_DEFAULT_SENDER"],
+                    recipients=[donation.email],
+                )
+                msg.body = (
+                    f"Hello {donation.name.capitalize()},\n\n"
+                    f"Great news! Your blood donation has been Approved. "
+                    f"Thank you for your contribution to the community."
+                )
+                mail.send(msg)
+            except Exception:
+                flash("Status updated, but email notification failed to send.", "warning")
+
+        flash(f"Donation #{id} updated to {new_status}.", "success")
+
+    return redirect(request.referrer or url_for("admin.donations_db"))
 
 @admin_bp.route("/update_request_status/<int:id>", methods=["POST"])
 def update_request_status(id):
