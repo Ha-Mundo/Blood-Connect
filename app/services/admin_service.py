@@ -205,7 +205,7 @@ class AdminService:
         else:
             raise ValueError("Invalid table type")
 
-        return si.getvalue()
+        return si.getvalue(), f"{table_type}.csv"
 
     @staticmethod
     def cleanup_records():
