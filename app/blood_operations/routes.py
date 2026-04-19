@@ -11,7 +11,7 @@ blood_ops_bp = Blueprint('blood_ops', __name__)
 
 @blood_ops_bp.route("/blood_donation", methods=['GET', 'POST'])
 @login_required
-def donate_blood():
+def blood_donation():
     today = datetime.date.today()
     latest_donation = BloodService.get_latest_donation(current_user.email)
 
