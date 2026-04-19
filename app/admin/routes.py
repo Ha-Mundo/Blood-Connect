@@ -18,6 +18,8 @@ def require_admin():
         abort(403)
 
 
+# ===================== USERS =====================
+
 @admin_bp.route("/users")
 def users_db():
     page = request.args.get("page", 1, type=int)
@@ -39,26 +41,28 @@ def users_db():
     )
 
 
+# ===================== DONATIONS =====================
+
 @admin_bp.route("/donations")
 def donations_db():
     page = request.args.get("page", 1, type=int)
     search = request.args.get("search")
     status = request.args.get("status")
-    verified = request.args.get("verified")
 
-    pagination, count = AdminService.get_users_page(
+    pagination, count = AdminService.get_donations_page(
         page=page,
         search=search,
-        status=status,
-        verified=verified
+        status=status
     )
 
     return render_template(
-        "users_db.html",
+        "donations_db.html",
         pagination=pagination,
-        all_users_counter=count
+        all_donations_counter=count
     )
 
+
+# ===================== REQUESTS =====================
 
 @admin_bp.route("/requests")
 def requests_db():
@@ -82,42 +86,50 @@ def requests_db():
     )
 
 
+# ===================== STATUS UPDATES =====================
+
 @admin_bp.route("/update_donation_status/<int:id>", methods=["POST"])
 def update_donation_status(id):
-    return requests_db()
+    AdminService.update_donation_status(id)
+    flash("Donation status updated.", "success")
+    return redirect(request.referrer or url_for("admin.donations_db"))
 
 
 @admin_bp.route("/update_request_status/<int:id>", methods=["POST"])
 def update_request_status(id):
-    return requests_db()
+    AdminService.update_request_status(id)
+    flash("Request status updated.", "success")
+    return redirect(request.referrer or url_for("admin.requests_db"))
 
 
 @admin_bp.route("/update_users_status/<int:user_id>", methods=["POST"])
 def toggle_user(user_id):
-    user, action, status_text, error = AdminService.toggle_user(user_id)
+    user, message = AdminService.toggle_user(user_id)
 
-    if error:
-        flash(error, "danger")
+    if not user:
+        flash(message, "danger")
         return redirect(request.referrer or url_for("admin.users_db"))
 
     try:
         msg = Message(
-            f"Account {action.capitalize()} - Blood Donation System",
+            f"Account Update - Blood Donation System",
             sender=current_app.config["MAIL_DEFAULT_SENDER"],
             recipients=[user.email],
         )
         msg.body = (
             f"Hello {user.username},\n\n"
-            f"Your account has been {action} by an administrator. "
-            f"If you believe this is an error, please contact support."
+            f"Your account status has been updated.\n\n"
+            f"{message}"
         )
         mail.send(msg)
     except Exception:
-        flash("User updated, but email notification failed to send.", "warning")
+        flash("User updated, but email notification failed.", "warning")
 
-    flash(f"User {user.username} has been {status_text}.", "success")
+    flash(f"User {user.username}: {message}", "success")
     return redirect(request.referrer or url_for("admin.users_db"))
 
+
+# ===================== EXPORT =====================
 
 @admin_bp.route("/export_csv/<table_type>")
 def export_csv(table_type):
@@ -131,11 +143,15 @@ def export_csv(table_type):
     return output
 
 
+# ===================== CLEANUP =====================
+
 @admin_bp.route("/cleanup_records", methods=["POST"])
 def cleanup_records():
     deleted_donations, deleted_requests = AdminService.cleanup_records()
+
     flash(
-        f"Database optimized. Removed {deleted_donations} old donations and {deleted_requests} old requests.",
+        f"Database optimized. Removed {deleted_donations} donations and {deleted_requests} requests.",
         "info"
     )
+
     return redirect(url_for("main.profile"))
