@@ -140,13 +140,18 @@ class AdminService:
 
             requests = BloodRequest.query.filter(
                 BloodRequest.donor_email.in_(emails),
-                BloodRequest.status == "Pending"
+                BloodRequest.status.in_(["Pending", "Approved"])
             ).all()
 
-            for req in requests:
-                for d in claimed:
-                    if d.email == req.donor_email and d.blood_groups == req.blood_groups:
-                        matches[d.id] = req
+            request_map = {
+                (req.donor_email, req.blood_groups): req
+                for req in requests
+            }
+
+            for d in claimed:
+                key = (d.email, d.blood_groups)
+                if key in request_map:
+                    matches[d.id] = request_map[key]
 
         return pagination, count, matches
 
