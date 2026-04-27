@@ -16,19 +16,22 @@ class BloodService:
         return BloodDonation.query.filter_by(email=email)\
             .order_by(BloodDonation.id.desc()).first()
 
+    from flask import session
+
     @staticmethod
     def get_active_donation(latest_donation, today, force_form):
+
         if latest_donation and latest_donation.status == 'Approved':
-            if is_action_allowed(latest_donation.next_donation, today):
+            allowed_date = latest_donation.next_donation
+            key = f"donation_notified_{latest_donation.id}"
 
-                key = f"donation_notified_{latest_donation.id}"
+            # eligibility notifications for the next blood donation
+            if allowed_date and today == allowed_date and not session.get(key):
+                EmailService.send_eligibility_notification(
+                    latest_donation.email, "donation"
+                )
+                session[key] = True
 
-                if not session.get(key):
-                    EmailService.send_eligibility_notification(
-                        latest_donation.email, "donation"
-                    )
-                    session[key] = True
-        
         if not latest_donation or force_form:
             return None
 
@@ -151,7 +154,8 @@ class BloodService:
             if not is_action_allowed(allowed_date, today):
                 return None, "Safety limit: You can only make one request every 7 days."
             
-            if not session.get(key):
+            # eligibility notifications for the next blood request
+            if today == allowed_date and not session.get(key):
                 EmailService.send_eligibility_notification(user.email, "request")
                 session[key] = True
 
