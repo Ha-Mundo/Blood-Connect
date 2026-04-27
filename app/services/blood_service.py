@@ -29,12 +29,23 @@ class BloodService:
 
     @staticmethod
     def create_donation(form, user, latest_donation, today):
+        THREE_MONTHS = datetime.timedelta(days=90)
+
         if form.age.data < 18:
             return None, "Legal requirement: You must be at least 18 years old to donate blood."
 
         if latest_donation and latest_donation.status == 'Approved':
             if not is_action_allowed(latest_donation.next_donation, today):
                 return None, "Safety limit: You can only donate once every 90 days after a successful donation."
+            
+        if latest_donation:
+            next_allowed_date = latest_donation.latest_donation + THREE_MONTHS
+            
+            if today < next_allowed_date:
+                return None, (
+                    f"You can donate again after {next_allowed_date.strftime('%d/%m/%Y')}."
+                )
+                
 
         new_donor = BloodDonation(
             name=form.name.data.lower(),
@@ -121,6 +132,7 @@ class BloodService:
 
         if last_request and last_request.status in ['Pending', 'Approved', 'Fulfilled']:
             allowed_date = threshold_request(last_request.request_date)
+
             if not is_action_allowed(allowed_date, today):
                 return None, "Safety limit: You can only make one request every 7 days."
 
