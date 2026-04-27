@@ -1,5 +1,5 @@
 from flask_mail import Message
-from flask import url_for
+from flask import url_for, current_app
 
 from app.extensions import mail
 
@@ -28,4 +28,21 @@ class EmailService:
         )
 
         msg.body = f"Reset here: {reset_url}"
+        mail.send(msg)
+        
+    @staticmethod
+    def send_eligibility_notification(email, type_):
+        subject = ""
+        body = ""
+
+        if type_ == "donation":
+            subject = "You can donate blood again"
+            body = "You are now eligible to donate blood again. Thank you for your contribution!"
+
+        elif type_ == "request":
+            subject = "You can request blood again"
+            body = "You can now make a new blood request if needed."
+
+        msg = Message(subject, recipients=[email])
+        msg.body = body
         mail.send(msg)
