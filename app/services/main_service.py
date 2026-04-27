@@ -1,16 +1,40 @@
+import datetime
 from app.models import User, BloodDonation, BloodRequest
 from app.extensions import db, bcrypt
+from app.services.email_service import EmailService
+from time_limit import threshold_request
 
 
 class MainService:
 
     @staticmethod
     def get_global_stats(user):
+        today = datetime.date.today()
         stats = {
             'donations': 0,
             'requests': 0,
             'total_available': 0
         }
+        
+
+        latest_donation = BloodDonation.query.filter_by(
+            email=user.email
+        ).order_by(BloodDonation.id.desc()).first()
+
+        if latest_donation:
+            next_date = latest_donation.next_donation
+            if next_date and next_date == today:
+                EmailService.send_donation_available_email(user, next_date)
+
+
+        latest_request = BloodRequest.query.filter_by(
+            requester_email=user.email
+        ).order_by(BloodRequest.id.desc()).first()
+
+        if latest_request:
+            next_date = threshold_request(latest_request.request_date)
+            if next_date == today:
+                EmailService.send_request_available_email(user, next_date)
 
         # Protection: DB not ready / missing tables
         try:
