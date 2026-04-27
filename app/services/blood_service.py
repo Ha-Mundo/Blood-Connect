@@ -1,7 +1,9 @@
 import datetime
+from flask import session
 from app.extensions import db
 from app.models import BloodDonation, BloodRequest
 from app.time_limit import is_action_allowed, threshold_donation, threshold_request
+from app.services import EmailService
 
 
 class BloodService:
@@ -16,6 +18,17 @@ class BloodService:
 
     @staticmethod
     def get_active_donation(latest_donation, today, force_form):
+        if latest_donation and latest_donation.status == 'Approved':
+            if is_action_allowed(latest_donation.next_donation, today):
+
+                key = f"donation_notified_{latest_donation.id}"
+
+                if not session.get(key):
+                    EmailService.send_eligibility_notification(
+                        latest_donation.email, "donation"
+                    )
+                    session[key] = True
+        
         if not latest_donation or force_form:
             return None
 
@@ -133,8 +146,14 @@ class BloodService:
         if last_request and last_request.status in ['Pending', 'Approved', 'Fulfilled']:
             allowed_date = threshold_request(last_request.request_date)
 
+            key = f"request_notified_{last_request.id}"
+            
             if not is_action_allowed(allowed_date, today):
                 return None, "Safety limit: You can only make one request every 7 days."
+            
+            if not session.get(key):
+                EmailService.send_eligibility_notification(user.email, "request")
+                session[key] = True
 
         new_request = BloodRequest(
             name=user.username.lower(),
