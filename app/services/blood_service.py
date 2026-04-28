@@ -172,5 +172,9 @@ class BloodService:
         db.session.add(new_request)
         donation.status = 'Claimed'
         db.session.commit()
+        try:
+            EmailService.send_donation_claimed_notification(donation)
+        except Exception:
+            pass  # Does not block the flow if the email fails.
 
         return new_request, None

@@ -46,3 +46,19 @@ class EmailService:
         msg = Message(subject, recipients=[email])
         msg.body = body
         mail.send(msg)
+        
+    @staticmethod
+    def send_donation_claimed_notification(donation):
+        subject = "Your blood donation has been requested"
+
+        body = (
+            f"Hello {donation.name.capitalize()},\n\n"
+            f"Good news! A patient has requested your blood donation.\n\n"
+            f"Please proceed to the nearest hospital in {donation.city.capitalize()} "
+            f"to complete the donation process.\n\n"
+            f"Thank you for saving lives!"
+        )
+
+        msg = Message(subject, recipients=[donation.email])
+        msg.body = body
+        mail.send(msg)
