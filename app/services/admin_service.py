@@ -4,6 +4,7 @@ from io import StringIO
 from flask import abort
 from app.extensions import db
 from app.models import User, BloodDonation, BloodRequest
+from app.services.email_service import EmailService
 
 
 class AdminService:
@@ -170,10 +171,20 @@ class AdminService:
 
         if new_status not in allowed_statuses:
             return "Invalid status update.", None
-
+        
         donation.status = new_status
         db.session.commit()
 
+        if new_status == "Completed":
+            try:
+                EmailService.send_thank_you_email(
+                    donation.email,
+                    donation.name,
+                    "donation"
+                )
+            except Exception:
+                pass 
+            
         return None, donation
 
     @staticmethod
@@ -188,28 +199,33 @@ class AdminService:
         if new_status not in allowed_statuses:
             return "Invalid status update.", None
 
-        # --- SYNCHRONIZATION LOGIC ---
+        donation = BloodDonation.query.filter_by(
+            email=blood_req.donor_email,
+            blood_groups=blood_req.blood_groups,
+            status='Claimed'
+        ).first()
 
+        # --- SYNCHRONIZATION LOGIC ---
         if new_status in ['Cancelled', 'Unsuccessful']:
-            donation = BloodDonation.query.filter_by(
-                email=blood_req.donor_email,
-                blood_groups=blood_req.blood_groups,
-                status='Claimed'
-            ).first()
             if donation:
                 donation.status = 'Pending'
 
         elif new_status == 'Completed':
-            donation = BloodDonation.query.filter_by(
-                email=blood_req.donor_email,
-                blood_groups=blood_req.blood_groups,
-                status='Claimed'
-            ).first()
             if donation:
                 donation.status = 'Completed'
 
         blood_req.status = new_status
         db.session.commit()
+
+        if new_status == "Completed":
+            try: 
+                EmailService.send_thank_you_email(
+                    blood_req.requester_email,
+                    blood_req.name,
+                    "request"
+                )
+            except Exception:
+                pass 
 
         return None, blood_req
 

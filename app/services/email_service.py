@@ -129,3 +129,26 @@ class EmailService:
         )
 
         mail.send(msg)
+        
+    
+    @staticmethod
+    def send_thank_you_email(email, name, type_):
+        if type_ == "donation":
+            subject = "Thank you for your donation ❤️"
+            body = (
+                f"Hello {name.capitalize()},\n\n"
+                f"Thank you for completing your blood donation.\n"
+                f"Your contribution can save lives."
+            )
+
+        elif type_ == "request":
+            subject = "Your request has been fulfilled"
+            body = (
+                f"Hello {name.capitalize()},\n\n"
+                f"Your blood request has been successfully completed.\n"
+                f"We wish you the best."
+            )
+
+        msg = Message(subject, recipients=[email])
+        msg.body = body
+        mail.send(msg)
