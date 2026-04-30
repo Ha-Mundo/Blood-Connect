@@ -5,6 +5,7 @@ from flask_mail import Message
 
 from app.extensions import mail
 from app.services.admin_service import AdminService
+from app.services.email_service import EmailService
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -90,6 +91,7 @@ def requests_db():
 
 
 # ===================== STATUS UPDATES =====================
+
 @admin_bp.route("/update_donation_status/<int:id>", methods=["POST"])
 def update_donation_status(id):
     new_status = request.form.get("new_status")
@@ -104,39 +106,14 @@ def update_donation_status(id):
     else:
         if new_status in ["Approved", "Unsuccessful"]:
             try:
-                subject = ""
-                body = ""
-
-                if new_status == "Approved":
-                    subject = "Blood Donation Approved"
-                    body = (
-                        f"Hello {donation.name.capitalize()},\n\n"
-                        f"Great news! Your blood donation has been Approved. "
-                        f"Thank you for your contribution to the community."
-                    )
-                elif new_status == "Unsuccessful":
-                    subject = "Update regarding your Blood Donation"
-                    body = (
-                        f"Hello {donation.name.capitalize()},\n\n"
-                        f"We are writing to inform you that your recent blood donation "
-                        f"status has been marked as Unsuccessful. \n"
-                        f"Please contact our center if you have any questions."
-                    )
-
-                msg = Message(
-                    subject,
-                    sender=current_app.config["MAIL_DEFAULT_SENDER"],
-                    recipients=[donation.email],
-                )
-                msg.body = body
-                mail.send(msg)
-                
+                EmailService.send_donation_status_notification(donation, new_status)
             except Exception:
-                flash("Status updated, but email notification failed to send.", "warning")
+                flash("Email notification failed.", "warning")
 
         flash(f"Donation #{id} updated to {new_status}.", "success")
 
     return redirect(request.referrer or url_for("admin.donations_db"))
+
 
 @admin_bp.route("/update_request_status/<int:id>", methods=["POST"])
 def update_request_status(id):
@@ -152,32 +129,9 @@ def update_request_status(id):
     else:
         if new_status in ["Approved", "Unsuccessful"]:
             try:
-                subject = ""
-                body = ""
-
-                if new_status == "Approved":
-                    subject = "Blood Request Approved"
-                    body = (
-                        f"Hello {blood_req.name.capitalize()},\n\n"
-                        f"Great news! Your blood request has been Approved."
-                    )
-                elif new_status == "Unsuccessful":
-                    subject = "Update regarding your Blood Request"
-                    body = (
-                        f"Hello {blood_req.name.capitalize()},\n\n"
-                        f"Your request was marked as Unsuccessful."
-                    )
-
-                msg = Message(
-                    subject,
-                    sender=current_app.config["MAIL_DEFAULT_SENDER"],
-                    recipients=[blood_req.requester_email],
-                )
-                msg.body = body
-                mail.send(msg)
-
+                EmailService.send_request_status_notification(blood_req, new_status)
             except Exception:
-                flash("Status updated, but email notification failed to send.", "warning")
+                flash("Email notification failed.", "warning")
 
         flash(f"Request #{id} updated to {new_status}.", "success")
 
@@ -193,19 +147,9 @@ def toggle_user(user_id):
         return redirect(request.referrer or url_for("admin.users_db"))
 
     try:
-        msg = Message(
-            f"Account Update - Blood Donation System",
-            sender=current_app.config["MAIL_DEFAULT_SENDER"],
-            recipients=[user.email],
-        )
-        msg.body = (
-            f"Hello {user.username},\n\n"
-            f"Your account status has been updated.\n\n"
-            f"{message}"
-        )
-        mail.send(msg)
+        EmailService.send_user_status_notification(user, message)
     except Exception:
-        flash("User updated, but email notification failed.", "warning")
+        flash("Email notification failed.", "warning")
 
     flash(f"User {user.username}: {message}", "success")
     return redirect(request.referrer or url_for("admin.users_db"))

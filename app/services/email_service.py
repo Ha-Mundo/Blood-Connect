@@ -62,3 +62,70 @@ class EmailService:
         msg = Message(subject, recipients=[donation.email])
         msg.body = body
         mail.send(msg)
+        
+    @staticmethod
+    def send_donation_status_notification(donation, status):
+        subject = ""
+        body = ""
+
+        if status == "Approved":
+            subject = "Blood Donation Approved"
+            body = (
+                f"Hello {donation.name.capitalize()},\n\n"
+                f"Great news! Your blood donation has been approved. "
+                f"Thank you for your contribution."
+            )
+
+        elif status == "Unsuccessful":
+            subject = "Update on your Blood Donation"
+            body = (
+                f"Hello {donation.name.capitalize()},\n\n"
+                f"Your donation has been marked as unsuccessful.\n"
+                f"Please contact the center for more info."
+            )
+
+        if subject:
+            msg = Message(subject, recipients=[donation.email])
+            msg.body = body
+            mail.send(msg)
+
+
+    @staticmethod
+    def send_request_status_notification(request, status):
+        subject = ""
+        body = ""
+
+        if status == "Approved":
+            subject = "Blood Request Approved"
+            body = (
+                f"Hello {request.name.capitalize()},\n\n"
+                f"Your blood request has been approved."
+            )
+
+        elif status == "Unsuccessful":
+            subject = "Update on your Blood Request"
+            body = (
+                f"Hello {request.name.capitalize()},\n\n"
+                f"Your request has been marked as unsuccessful."
+            )
+
+        if subject:
+            msg = Message(subject, recipients=[request.requester_email])
+            msg.body = body
+            mail.send(msg)
+
+
+    @staticmethod
+    def send_user_status_notification(user, message):
+        msg = Message(
+            "Account Update - Blood Donation System",
+            recipients=[user.email],
+        )
+
+        msg.body = (
+            f"Hello {user.username},\n\n"
+            f"Your account status has been updated.\n\n"
+            f"{message}"
+        )
+
+        mail.send(msg)
