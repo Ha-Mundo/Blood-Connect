@@ -99,7 +99,7 @@ class AdminService:
         db.session.commit()
 
         status_text = (
-            "banned and their active records cleared"
+            "banned and your active records cleared"
             if not user.is_active
             else "activated"
         )
