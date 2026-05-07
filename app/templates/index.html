@@ -21,7 +21,7 @@
         
             {% if current_user.role == 'user' %}
             <div class="col-lg-4 col-md-6">
-                <a class="d-flex flex-column align-items-center btn-d icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-d icon-box d-block p-3 text-decoration-none"
                 href="{{ url_for('blood_ops.blood_donation') }}">
                     <img src="{{ url_for('static', filename='icons/blood-donation.png') }}" class="b-icons">
                     <h2 class="d-inline-block mt-2">Donate Blood</h2>
@@ -29,7 +29,7 @@
             </div>
 
             <div class="col-lg-4 col-md-6">
-                <a class="d-flex flex-column align-items-center btn-r icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-r icon-box d-block p-3 text-decoration-none"
                 href="{{ url_for('blood_ops.blood_request') }}">
                     <img src="{{ url_for('static', filename='icons/blood-request.png') }}" class="b-icons">
                     <h2 class="d-inline-block mt-2">Receive Blood</h2>
@@ -39,7 +39,7 @@
 
             {% if current_user.role == 'admin' %}
             <div class="col-lg-4 col-md-6">
-                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
                    href="{{ url_for('admin.donations_db') }}"
                    style="background-color:#f8d7da;">
                     <img src="/static/icons/blood-donations-db.png" class="b-icons">
@@ -51,7 +51,7 @@
             </div>
             
             <div class="col-lg-4 col-md-6">
-                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
                    href="{{ url_for('admin.requests_db') }}"
                    style="background-color:#f8d7da;">
                     <img  src="{{ url_for('static', filename='icons/blood-requests-db.png') }}" class="b-icons">
@@ -63,7 +63,7 @@
             </div>
 
             <div class="col-lg-4 col-md-6">
-                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3"
+                <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
                    href="{{ url_for('admin.users_db') }}"
                    style="background-color:#f8d7da;">
                     <img src="{{ url_for('static', filename='icons/users-db.svg') }}" class="b-icons">
