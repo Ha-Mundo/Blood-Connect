@@ -1,7 +1,7 @@
 import csv
 from datetime import date, timedelta
 from io import StringIO
-from flask import abort
+from flask import abort, current_app
 from app.extensions import db
 from app.models import User, BloodDonation, BloodRequest
 from app.services.email_service import EmailService
@@ -177,22 +177,26 @@ class AdminService:
 
         if new_status == "Completed":
             try:
+                donation_user = User.query.filter_by(email=donation.email).first()
                 EmailService.send_thank_you_email(
-                    email=donation.email,
+                    user=donation_user,
                     name=donation.name,
                     type_="donation"
                 )
-            except Exception:
-                pass 
+            except Exception as e:
+                current_app.logger.error(f"Email error: {e}")
             
         return None, donation
 
     @staticmethod
     def update_request_status(request_id, new_status):
         blood_req = db.session.get(BloodRequest, request_id)
-
+        
         if not blood_req:
             return "Request not found.", None
+        
+        user = User.query.filter_by(email=blood_req.requester_email).first()
+
 
         allowed_statuses = ['Pending', 'Approved', 'Completed', 'Unsuccessful', 'Cancelled']
 
@@ -220,12 +224,12 @@ class AdminService:
         if new_status == "Completed":
             try: 
                 EmailService.send_thank_you_email(
-                    email=blood_req.requester_email,
+                    user=user,
                     name=blood_req.name,
                     type_="request"
                 )
-            except Exception:
-                pass 
+            except Exception as e:
+                current_app.logger.error(f"Email error: {e}") 
 
         return None, blood_req
 

@@ -2,28 +2,12 @@ from flask_mail import Message
 from flask import url_for, current_app
 
 from app.extensions import mail
-from app.models import User
-
 
 class EmailService:
     
-    _user_cache = {}
-
     @staticmethod
-    def _can_send(user=None, email=None):
-        if user:
-            return user.email_notifications
-
-        if email:
-            if email in EmailService._user_cache:
-                return EmailService._user_cache[email]
-
-            user = User.query.filter_by(email=email).first()
-            result = user and user.email_notifications
-            EmailService._user_cache[email] = result
-            return result
-
-        return False
+    def _can_send(user):
+        return user and user.email_notifications
 
     @staticmethod
     def send_confirmation_email(user, token):
@@ -50,8 +34,8 @@ class EmailService:
         mail.send(msg)
         
     @staticmethod
-    def send_eligibility_notification(email, type_):
-        if not EmailService._can_send(email=email):
+    def send_eligibility_notification(user, type_):
+        if not EmailService._can_send(user):
             return
         
         subject = ""
@@ -65,13 +49,13 @@ class EmailService:
             subject = "You can request blood again"
             body = "You can now make a new blood request if needed."
 
-        msg = Message(subject, recipients=[email])
+        msg = Message(subject, recipients=[user.email])
         msg.body = body
         mail.send(msg)
         
     @staticmethod
-    def send_donation_claimed_notification(donation):
-        if not EmailService._can_send(email=donation.email):
+    def send_donation_claimed_notification(user, donation):
+        if not EmailService._can_send(user):
             return
         
         subject = "Your blood donation has been requested"
@@ -89,8 +73,8 @@ class EmailService:
         mail.send(msg)
         
     @staticmethod
-    def send_donation_status_notification(donation, status):
-        if not EmailService._can_send(email=donation.email):
+    def send_donation_status_notification(user, donation, status):
+        if not EmailService._can_send(user):
             return
         
         subject = ""
@@ -119,8 +103,8 @@ class EmailService:
 
 
     @staticmethod
-    def send_request_status_notification(request, status):
-        if not EmailService._can_send(email=request.requester_email):
+    def send_request_status_notification(user, request, status):
+        if not EmailService._can_send(user):
             return
         
         subject = ""
@@ -148,7 +132,7 @@ class EmailService:
 
     @staticmethod
     def send_user_status_notification(user, message):
-        if not EmailService._can_send(user=user):
+        if not EmailService._can_send(user):
             return
         
         msg = Message(
@@ -166,8 +150,8 @@ class EmailService:
         
     
     @staticmethod
-    def send_thank_you_email(user=None, email=None, name="", type_=""):
-        if not EmailService._can_send(user=user, email=email):
+    def send_thank_you_email(user, name, type_):
+        if not EmailService._can_send(user):
             return
 
 
@@ -187,6 +171,6 @@ class EmailService:
                 f"We wish you the best."
             )
 
-        msg = Message(subject, recipients=[email])
+        msg = Message(subject, recipients=[user.email])
         msg.body = body
         mail.send(msg)

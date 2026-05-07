@@ -1,7 +1,7 @@
 import datetime
-from flask import session
+from flask import session, current_app
 from app.extensions import db
-from app.models import BloodDonation, BloodRequest
+from app.models import User, BloodDonation, BloodRequest
 from app.time_limit import is_action_allowed, threshold_donation, threshold_request
 from app.services import EmailService
 
@@ -19,7 +19,7 @@ class BloodService:
     from flask import session
 
     @staticmethod
-    def get_active_donation(latest_donation, today, force_form):
+    def get_active_donation(user, latest_donation, today, force_form):
 
         if latest_donation and latest_donation.status == 'Approved':
             allowed_date = latest_donation.next_donation
@@ -28,7 +28,7 @@ class BloodService:
             # eligibility notifications for the next blood donation
             if allowed_date and today == allowed_date and not session.get(key):
                 EmailService.send_eligibility_notification(
-                    latest_donation.email, "donation"
+                    user, "donation"
                 )
                 session[key] = True
 
@@ -156,7 +156,7 @@ class BloodService:
             
             # eligibility notifications for the next blood request
             if today == allowed_date and not session.get(key):
-                EmailService.send_eligibility_notification(user.email, "request")
+                EmailService.send_eligibility_notification(user, "request")
                 session[key] = True
 
         new_request = BloodRequest(
@@ -173,8 +173,9 @@ class BloodService:
         donation.status = 'Claimed'
         db.session.commit()
         try:
-            EmailService.send_donation_claimed_notification(donation)
-        except Exception:
-            pass  # Does not block the flow if the email fails.
+            donor_user = User.query.filter_by(email=donation.email).first()
+            EmailService.send_donation_claimed_notification(donor_user, donation)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}") # Does not block the flow if the email fails.
 
         return new_request, None
