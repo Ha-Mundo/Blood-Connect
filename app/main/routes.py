@@ -66,6 +66,8 @@ def home():
 @login_required
 def profile():
     form = ProfileForm()
+    is_admin = current_user.role == "admin"
+    
 
     if form.validate_on_submit():
         MainService.update_profile(current_user, form)
@@ -88,6 +90,7 @@ def profile():
     return render_template(
         'profile.html',
         form=form,
+        is_admin=is_admin,
         completed_donations=activity['completed_donations'],
         completed_requests=activity['completed_requests']
     )
