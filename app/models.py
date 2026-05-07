@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     blood_group = db.Column(db.String(5), nullable=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    email_notifications = db.Column(db.Boolean, default=True)
 
 class BloodDonation(db.Model):
     id = db.Column(db.Integer, primary_key=True)

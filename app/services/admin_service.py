@@ -178,9 +178,9 @@ class AdminService:
         if new_status == "Completed":
             try:
                 EmailService.send_thank_you_email(
-                    donation.email,
-                    donation.name,
-                    "donation"
+                    email=donation.email,
+                    name=donation.name,
+                    type_="donation"
                 )
             except Exception:
                 pass 
@@ -220,9 +220,9 @@ class AdminService:
         if new_status == "Completed":
             try: 
                 EmailService.send_thank_you_email(
-                    blood_req.requester_email,
-                    blood_req.name,
-                    "request"
+                    email=blood_req.requester_email,
+                    name=blood_req.name,
+                    type_="request"
                 )
             except Exception:
                 pass 

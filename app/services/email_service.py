@@ -2,9 +2,28 @@ from flask_mail import Message
 from flask import url_for, current_app
 
 from app.extensions import mail
+from app.models import User
 
 
 class EmailService:
+    
+    _user_cache = {}
+
+    @staticmethod
+    def _can_send(user=None, email=None):
+        if user:
+            return user.email_notifications
+
+        if email:
+            if email in EmailService._user_cache:
+                return EmailService._user_cache[email]
+
+            user = User.query.filter_by(email=email).first()
+            result = user and user.email_notifications
+            EmailService._user_cache[email] = result
+            return result
+
+        return False
 
     @staticmethod
     def send_confirmation_email(user, token):
@@ -32,6 +51,9 @@ class EmailService:
         
     @staticmethod
     def send_eligibility_notification(email, type_):
+        if not EmailService._can_send(email=email):
+            return
+        
         subject = ""
         body = ""
 
@@ -49,6 +71,9 @@ class EmailService:
         
     @staticmethod
     def send_donation_claimed_notification(donation):
+        if not EmailService._can_send(email=donation.email):
+            return
+        
         subject = "Your blood donation has been requested"
 
         body = (
@@ -65,6 +90,9 @@ class EmailService:
         
     @staticmethod
     def send_donation_status_notification(donation, status):
+        if not EmailService._can_send(email=donation.email):
+            return
+        
         subject = ""
         body = ""
 
@@ -92,6 +120,9 @@ class EmailService:
 
     @staticmethod
     def send_request_status_notification(request, status):
+        if not EmailService._can_send(email=request.requester_email):
+            return
+        
         subject = ""
         body = ""
 
@@ -117,6 +148,9 @@ class EmailService:
 
     @staticmethod
     def send_user_status_notification(user, message):
+        if not EmailService._can_send(user=user):
+            return
+        
         msg = Message(
             "Account Update - Blood Donation System",
             recipients=[user.email],
@@ -132,7 +166,11 @@ class EmailService:
         
     
     @staticmethod
-    def send_thank_you_email(email, name, type_):
+    def send_thank_you_email(user=None, email=None, name="", type_=""):
+        if not EmailService._can_send(user=user, email=email):
+            return
+
+
         if type_ == "donation":
             subject = "Thank you for your donation ❤️"
             body = (

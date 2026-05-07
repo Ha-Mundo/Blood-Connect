@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, IntegerField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, IntegerField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Regexp, Optional
 
 # English: Predefined list for the dropdown menus
@@ -83,5 +83,7 @@ class ProfileForm(FlaskForm):
     confirm_password = PasswordField('Confirm New Password', validators=[
         EqualTo('new_password', message='Passwords must match.')
     ])
+    
+    email_notifications = BooleanField("Email Notifications")
     
     submit = SubmitField('Update Profile')

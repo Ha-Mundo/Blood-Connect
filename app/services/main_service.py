@@ -70,6 +70,7 @@ class MainService:
 
     @staticmethod
     def update_profile(user, form):
+
         if form.username.data:
             user.username = form.username.data.lower()
 
@@ -80,6 +81,8 @@ class MainService:
             user.password = bcrypt.generate_password_hash(
                 form.new_password.data
             ).decode('utf-8')
+
+        user.email_notifications = form.email_notifications.data
 
         db.session.commit()
 

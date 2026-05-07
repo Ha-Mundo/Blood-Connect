@@ -72,12 +72,13 @@ def profile():
         flash("Profile updated successfully!", "success")
         return redirect(url_for('main.profile'))
 
-    elif request.method == 'GET':
-        form.username.data = current_user.username.title()
+    if request.method == 'GET':
+        form.username.data = current_user.username
         form.blood_group.data = (
             current_user.blood_group.upper()
             if current_user.blood_group else ''
         )
+        form.email_notifications.data = current_user.email_notifications
 
     activity = {'completed_donations': 0, 'completed_requests': 0}
 
