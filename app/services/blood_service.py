@@ -3,6 +3,7 @@ from flask import session, current_app
 from app.extensions import db
 from app.models import User, BloodDonation, BloodRequest
 from app.time_limit import is_action_allowed, threshold_donation, threshold_request
+from app.config.rules import (MIN_DONOR_AGE, DONATION_COOLDOWN)
 from app.services import EmailService
 
 
@@ -45,9 +46,8 @@ class BloodService:
 
     @staticmethod
     def create_donation(form, user, latest_donation, today):
-        THREE_MONTHS = datetime.timedelta(days=90)
 
-        if form.age.data < 18:
+        if form.age.data < MIN_DONOR_AGE:
             return None, "Legal requirement: You must be at least 18 years old to donate blood."
 
         if latest_donation and latest_donation.status == 'Approved':
@@ -55,7 +55,7 @@ class BloodService:
                 return None, "Safety limit: You can only donate once every 90 days after a successful donation."
             
         if latest_donation:
-            next_allowed_date = latest_donation.latest_donation + THREE_MONTHS
+            next_allowed_date = latest_donation.latest_donation + DONATION_COOLDOWN
             
             if today < next_allowed_date:
                 return None, (

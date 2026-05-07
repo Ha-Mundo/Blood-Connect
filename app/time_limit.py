@@ -1,20 +1,19 @@
 import datetime
+from app.config.rules import DONATION_COOLDOWN, REQUEST_COOLDOWN
 
-def threshold_donation(base_date):
+def threshold_donation(date):
     """
     Calculates the date when a donor is eligible to donate again.
     Standard safety interval: 90 days.
     """
-    threshold = datetime.timedelta(days=90)
-    return base_date + threshold
+    return date +  DONATION_COOLDOWN
 
-def threshold_request(base_date):
+def threshold_request(date):
     """
     Calculates the date when a user can make a new blood request.
     Anti-spam interval: 7 days.
     """
-    threshold = datetime.timedelta(days=7)
-    return base_date + threshold
+    return date + REQUEST_COOLDOWN
 
 def is_action_allowed(next_allowed_date, current_date):
     """

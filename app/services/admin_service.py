@@ -5,6 +5,7 @@ from flask import abort, current_app
 from app.extensions import db
 from app.models import User, BloodDonation, BloodRequest
 from app.services.email_service import EmailService
+from app.config.rules import CLEANUP_AFTER_DAYS
 
 
 class AdminService:
@@ -257,7 +258,7 @@ class AdminService:
 
     @staticmethod
     def cleanup_records():
-        threshold_date = date.today() - timedelta(days=30)
+        threshold_date = date.today() - timedelta(days=CLEANUP_AFTER_DAYS)
 
         deleted_donations = BloodDonation.query.filter(
             BloodDonation.status.in_(["Cancelled", "Unsuccessful"]),
