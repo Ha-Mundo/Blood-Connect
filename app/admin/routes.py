@@ -6,6 +6,7 @@ from flask_mail import Message
 from app.extensions import mail
 from app.services.admin_service import AdminService
 from app.services.email_service import EmailService
+from app.models import User
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -106,8 +107,10 @@ def update_donation_status(id):
     else:
         if new_status in ["Approved", "Unsuccessful"]:
             try:
-                EmailService.send_donation_status_notification(donation, new_status)
-            except Exception:
+                donation_user = User.query.filter_by(email=donation.email).first()
+                EmailService.send_donation_status_notification(donation_user, donation, new_status)
+            except Exception as e:
+                current_app.logger.error(f"Email notification error: {e}")
                 flash("Email notification failed.", "warning")
 
         flash(f"Donation #{id} updated to {new_status}.", "success")
@@ -129,8 +132,10 @@ def update_request_status(id):
     else:
         if new_status in ["Approved", "Unsuccessful"]:
             try:
-                EmailService.send_request_status_notification(blood_req, new_status)
-            except Exception:
+                requester_user = User.query.filter_by(email=blood_req.requester_email).first()
+                EmailService.send_request_status_notification(requester_user, blood_req, new_status)
+            except Exception as e:
+                current_app.logger.error(f"Email notification error: {e}")
                 flash("Email notification failed.", "warning")
 
         flash(f"Request #{id} updated to {new_status}.", "success")

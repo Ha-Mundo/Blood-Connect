@@ -33,7 +33,7 @@ class MainService:
             if latest_donation:
                 next_date = latest_donation.next_donation
                 if next_date and next_date == today:
-                    EmailService.send_eligibility_notification(user.email, "donation")
+                    EmailService.send_eligibility_notification(user, "donation")
 
             latest_request = BloodRequest.query.filter_by(
                 requester_email=user.email
@@ -42,7 +42,7 @@ class MainService:
             if latest_request:
                 next_date = threshold_request(latest_request.request_date)
                 if next_date == today:
-                    EmailService.send_eligibility_notification(user.email, "request")
+                    EmailService.send_eligibility_notification(user, "request")
 
             try:
                 stats['donations'] = BloodDonation.query.filter_by(
