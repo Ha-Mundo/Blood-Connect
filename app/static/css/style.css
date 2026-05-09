@@ -131,24 +131,20 @@ form {
    BUTTON LINKS
 ================================================= */
 
+a.btn-admin,
 a.btn-d,
 a.btn-r {
+    background-color:#f8d7da;
+    color: black;
     display: inline-block;
     border-radius: .25rem;
     border: 1px solid transparent;
     padding: .5rem 1rem;
-    color: #4183c4;
 }
 
 a.btn-r {
     padding: .5rem 1.65rem;
 }
-
-a.btn-d:hover,
-a.btn-r:hover {
-    color: black;
-}
-
 
 /* =================================================
    PAGES

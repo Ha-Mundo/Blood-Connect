@@ -40,8 +40,7 @@
             {% if current_user.role == 'admin' %}
             <div class="col-lg-4 col-md-6">
                 <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
-                   href="{{ url_for('admin.donations_db') }}"
-                   style="background-color:#f8d7da;">
+                   href="{{ url_for('admin.donations_db') }}">
                     <img src="/static/icons/blood-donations-db.png" class="b-icons">
                     <h2 class="mt-0 mb-2">
                         Donations DB
@@ -52,8 +51,7 @@
             
             <div class="col-lg-4 col-md-6">
                 <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
-                   href="{{ url_for('admin.requests_db') }}"
-                   style="background-color:#f8d7da;">
+                   href="{{ url_for('admin.requests_db') }}">
                     <img  src="{{ url_for('static', filename='icons/blood-requests-db.png') }}" class="b-icons">
                     <h2 class="mt-0 mb-2">
                         Requests DB
@@ -64,8 +62,7 @@
 
             <div class="col-lg-4 col-md-6">
                 <a class="d-flex flex-column align-items-center btn-admin icon-box d-block p-3 text-decoration-none"
-                   href="{{ url_for('admin.users_db') }}"
-                   style="background-color:#f8d7da;">
+                   href="{{ url_for('admin.users_db') }}">
                     <img src="{{ url_for('static', filename='icons/users-db.svg') }}" class="b-icons">
                     <h2 class="mt-0 mb-2">
                         Users DB
