@@ -58,12 +58,12 @@ class EmailService:
         if not EmailService._can_send(user):
             return
         
-        subject = "Your blood donation has been requested"
+        subject = f"Your blood donation #{donation.id} has been requested"
 
         body = (
-            f"Hello {donation.name.capitalize()},\n\n"
-            f"Good news! A patient has requested your blood donation.\n\n"
-            f"Please proceed to the nearest hospital in {donation.city.capitalize()} "
+            f"Hello {donation.name.title()},\n\n"
+            f"Good news! A patient has requested your blood donation #{donation.id}.\n\n"
+            f"Please proceed to the nearest hospital in {donation.city.title()} "
             f"to complete the donation process.\n\n"
             f"Thank you for saving lives!"
         )
@@ -81,18 +81,18 @@ class EmailService:
         body = ""
 
         if status == "Approved":
-            subject = "Blood Donation Approved"
+            subject = f"Blood Donation #{donation.id} Approved "
             body = (
-                f"Hello {donation.name.capitalize()},\n\n"
-                f"Great news! Your blood donation has been approved. "
+                f"Hello {donation.name.title()},\n\n"
+                f"Great news! Your blood donation #{donation.id} has been approved and you'll be contacted soon. "
                 f"Thank you for your contribution."
             )
 
         elif status == "Unsuccessful":
-            subject = "Update on your Blood Donation"
+            subject = f"Update on your Blood Donation #{donation.id}"
             body = (
-                f"Hello {donation.name.capitalize()},\n\n"
-                f"Your donation has been marked as unsuccessful.\n"
+                f"Hello {donation.name.title()},\n\n"
+                f"Your donation #{donation.id} has been marked as unsuccessful.\n"
                 f"Please contact the center for more info."
             )
 
@@ -111,17 +111,22 @@ class EmailService:
         body = ""
 
         if status == "Approved":
-            subject = "Blood Request Approved"
+            subject = f"Blood Request #{request.id} Approved"
             body = (
-                f"Hello {request.name.capitalize()},\n\n"
-                f"Your blood request has been approved."
+                f"Hello {request.name.title()},\n\n"
+                f"We are pleased to inform you that your blood request #{request.id} has been reviewed and approved.\n\n"
+                f"What happens next? A member of our clinical team will contact you shortly to coordinate "
+                f"the next steps and ensure everything moves forward smoothly.\n\n"
+                f"In the meantime, if you have any questions, feel free to reply to this email.\n\n"
+                f"Best regards,\n"
+                f"The Blood Donation Team"
             )
 
         elif status == "Unsuccessful":
-            subject = "Update on your Blood Request"
+            subject = f"Update on your Blood Request #{request.id} "
             body = (
-                f"Hello {request.name.capitalize()},\n\n"
-                f"Your request has been marked as unsuccessful."
+                f"Hello {request.name.title()},\n\n"
+                f"Your request #{request.id} has been marked as unsuccessful."
             )
 
         if subject:
@@ -158,7 +163,7 @@ class EmailService:
         if type_ == "donation":
             subject = "Thank you for your donation ❤️"
             body = (
-                f"Hello {name.capitalize()},\n\n"
+                f"Hello {name.title()},\n\n"
                 f"Thank you for completing your blood donation.\n"
                 f"Your contribution can save lives."
             )
@@ -166,7 +171,7 @@ class EmailService:
         elif type_ == "request":
             subject = "Your request has been fulfilled"
             body = (
-                f"Hello {name.capitalize()},\n\n"
+                f"Hello {name.title()},\n\n"
                 f"Your blood request has been successfully completed.\n"
                 f"We wish you the best."
             )
