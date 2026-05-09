@@ -16,7 +16,7 @@ def blood_donation():
     latest_donation = BloodService.get_latest_donation(current_user.email)
 
     force_form = request.args.get('new') == '1'
-    active_donation = BloodService.get_active_donation(latest_donation, today, force_form)
+    active_donation = BloodService.get_active_donation(current_user, latest_donation, today, force_form)
 
     form = DonationForm()
 
