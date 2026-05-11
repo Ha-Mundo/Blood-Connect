@@ -30,7 +30,8 @@ def test_update_profile_changes_username_blood_group_and_password(app, db_sessio
         form = SimpleNamespace(
             username=SimpleNamespace(data="New Name"),
             blood_group=SimpleNamespace(data="b-"),
-            new_password=SimpleNamespace(data="NewPassword1!")
+            new_password=SimpleNamespace(data="NewPassword1!"),
+            email_notifications=SimpleNamespace(data=True)
         )
 
         MainService.update_profile(user, form)
@@ -82,7 +83,7 @@ def test_get_global_stats_counts_completed_activity(app, db_session):
 
         db_session.commit()
 
-        fake_current_user = SimpleNamespace(is_authenticated=True, email=user.email)
+        fake_current_user = SimpleNamespace(is_authenticated=True, email=user.email, email_notifications=True)
         stats = MainService.get_global_stats(fake_current_user)
 
         assert stats["total_available"] == 1
