@@ -141,7 +141,7 @@ class EmailService:
             return
         
         msg = Message(
-            "Account Update - Blood Donation System",
+            "Account Update - Blood Donation Portal",
             recipients=[user.email],
         )
 
