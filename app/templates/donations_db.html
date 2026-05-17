@@ -2,12 +2,12 @@
 {% block content %}
 <div class="container-fluid mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🩸 Donation Management Database</h2>
-        <div class="d-flex justify-content-center align-items-center">
-            <a href="{{ url_for('admin.export_csv', table_type='donations') }}" class="fw-bold btn btn-success py-1 px-3 me-2">
+        <h2 class="db-title">🩸Donation Management</h2>
+        <div class="info-section d-flex justify-content-center align-items-center">
+            <a href="{{ url_for('admin.export_csv', table_type='donations') }}" class="csv-btn fw-bold btn btn-success me-2">
                 <i class="fas fa-file-csv"></i>Download CSV
             </a>
-            <span class="badge bg-primary fs-5">Total Records: {{ all_donations_counter }}</span>
+            <span class="records badge bg-primary">Total Records: {{ all_donations_counter }}</span>
         </div>
     </div>
     <!-- Donation Search Bar -->
@@ -104,63 +104,61 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="d-flex justify-content-center gap-1">
-                                    <form action="{{ url_for('admin.update_donation_status', id=donation.id) }}" method="POST" class="ajax-form m-0">
+                                    <form action="{{ url_for('admin.update_donation_status', id=donation.id) }}" method="POST" class="ajax-form m-0" action-btn>
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                                        <button name="new_status" value="Completed" class="btn btn-outline-primary btn-sm" title="Mark Completed">
+                                        <button name="new_status" value="Completed" class="action-btn btn btn-outline-primary btn-sm" title="Mark Completed">
                                             Complete
                                         </button>
                                         
-                                        <button name="new_status" value="Approved" class="btn btn-outline-success btn-sm" title="Approve">
+                                        <button name="new_status" value="Approved" class="action-btn btn btn-outline-success btn-sm" title="Approve">
                                             Approve
                                         </button>
                                         
-                                        <button name="new_status" value="Unsuccessful" class="btn btn-outline-secondary btn-sm" title="Mark Unsuccessful">
+                                        <button name="new_status" value="Unsuccessful" class="action-btn btn btn-outline-secondary btn-sm" title="Mark Unsuccessful">
                                             Mark Fail
                                         </button>
 
-                                        <button name="new_status" value="Cancelled" class="btn btn-outline-danger btn-sm" title="Cancel">
+                                        <button name="new_status" value="Cancelled" class="action-btn btn btn-outline-danger btn-sm" title="Cancel">
                                             Cancel
                                         </button>
                                     </form>
-                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+        </div>
+        <!-- Pagination -->
+        <nav aria-label="Admin database pages" class="mt-4">
+            <ul class="pagination d-flex justify-content-center align-items-center gap-2">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
+                </li>
+                
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
+                </li>
+            </ul>
+        </nav>
 
-    <!-- Pagination -->
-     <nav aria-label="Admin database pages" class="mt-4">
-        <ul class="pagination d-flex justify-content-center align-items-center gap-2">
-            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
-            </li>
-            
-            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-                {% if page_num %}
-                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=page_num) }}">{{ page_num }}</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                {% endif %}
-            {% endfor %}
-            
-            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                <a class="page-link rounded" href="{{ url_for('admin.donations_db', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Back button -->
-    <div class="text-end">
-        <a class="btn btn-secondary floating-back-btn" href="/">
-            Back
-        </a>
+        <!-- Back button -->
+        <div class="text-end">
+            <a class="btn btn-secondary floating-back-btn" href="/">
+                Back
+            </a>
+        </div>
     </div>
-
 </div>
 {% endblock %}

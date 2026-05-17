@@ -1,7 +1,9 @@
 /* =================================================
    GLOBAL LAYOUT
 ================================================= */
-
+* {
+  box-sizing: border-box;
+}
 #content {
     min-width: 100%;
     min-height: 100%;
@@ -43,9 +45,18 @@ form {
 ================================================= */
 
 /* Navbar */
+.header {
+    display: inline;
+}
+
+.blogo {
+    width: 5rem;
+    display: inline;
+} 
+
 .navbar {
-  background-color: #FFFFFF; 
-  display: flex;
+    background-color: #FFFFFF; 
+    display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
@@ -91,20 +102,17 @@ form {
   .navbar a {
     margin: 0.5rem 0;
   }
+
+  .navbar div {
+    font-size: 1rem;
+  }
 }
 
-.header {
-    display: inline;
-}
 
-.blogo {
-    width: 5rem;
-    display: inline;
-}
 
 
 /* =================================================
-   ICON COMPONENTS
+ICON COMPONENTS
 ================================================= */
 
 .b-icons {
@@ -128,7 +136,7 @@ form {
 
 
 /* =================================================
-   BUTTON LINKS
+BUTTON LINKS
 ================================================= */
 
 a.btn-admin,
@@ -147,8 +155,12 @@ a.btn-r {
 }
 
 /* =================================================
-   PAGES
+PAGES
 ================================================= */
+.records {
+    font-size: 1.1rem;
+    padding: 0.65rem;
+}
 
 .donation-page {
     width: 50%;
@@ -164,6 +176,11 @@ a.btn-r {
 .select {
     margin-top: 10rem;
     margin-bottom: 9.45rem;
+}
+
+.action-btn {
+    font-size: 0.8rem;
+    margin: 0.1rem;
 }
 
 
@@ -192,7 +209,7 @@ a.btn-r {
 
 
 /* =================================================
-   FOOTER
+FOOTER
 ================================================= */
 
 footer {
@@ -212,26 +229,52 @@ footer p {
 
 
 /* =================================================
-   MEDIA QUERIES
+MEDIA QUERIES
 ================================================= */
-
-/* Tablet small edge case */
-@media (min-width: 768px) and (max-width: 769px) {
-    .header {
-        font-size: 3rem;
+@media (max-width: 880px) {
+    #content {font-size: 0.8rem;}
+    .action-btn {
+        font-size: 0.6rem;
     }
 }
 
+/* Tablet small edge case */
+@media (max-width: 769px) {
+    #content {font-size: .7rem;}
+    
+    .blogo {
+        width: 4rem;
+        display: inline;
+    }
+    .header {
+        font-size: 2rem;
+    }
+    
+    .db-title { font-size: 1.4rem;}
+
+    .csv-btn, 
+    .records{
+        white-space: nowrap;
+        font-size: 0.7rem;
+    }
+    .records {padding: 0.6rem;}
+    
+    /* .action-btn {
+        font-size: .55rem;
+        } */
+    }
+    
 
 /* Mobile */
 @media (max-width: 541px) {
-
+    
+    
     #content {
-        font-size: .5rem;
+        font-size: .6rem;
     }
-
+    
     .blogo {
-        width: 5.5rem;
+        width: 3rem;
         margin-left: -2rem;
     }
 
@@ -239,37 +282,39 @@ footer p {
         font-size: 1.5rem;
         font-weight: 700;
     }
-
+    
     .select {
         margin: 5rem auto;
     }
-
+    
     .b-icons {
         width: 9rem;
         display: block;
         margin-bottom: -1rem;
     }
-
+    
     a h2 {
         font-size: 1rem;
     }
-
+    
     a.btn-d,
     a.btn-r {
         padding: 0.5rem 4rem;
     }
-
+    
     .donation-page {
         width: 100%;
         line-height: 1.55rem;
     }
-
+    
     .request-page {
         width: 100%;
         margin: auto;
         line-height: 1.13rem;
     }
-
+    
+    .db-title { font-size: 1.1rem;}
+    
     footer {
         position: initial;
         bottom: 0;
@@ -279,21 +324,27 @@ footer p {
 
 
 /* Very small devices */
-@media (max-width: 320px) {
+@media (max-width: 360px) {
+    .header {
+    font-size: 1.35rem;
+  }
+}
 
+@media (max-width: 320px) {
+    
     #content {
         font-size: 0.32rem;
     }
-
+    
     .blogo {
-        width: 4rem;
+        width: 2rem;
         margin-left: -1rem;
     }
-
+    
     .header {
         font-size: 1rem;
     }
-
+    
     .donation-page {
         width: 100%;
         line-height: 1rem;
