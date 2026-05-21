@@ -46,11 +46,14 @@ form {
 
 /* Navbar */
 .header {
+    font-size: 1.75rem;
+     font-weight: 550;
     display: inline;
+    color: #b62222;
 }
 
 .blogo {
-    width: 5rem;
+    width: 4rem;
     display: inline;
 } 
 
@@ -243,11 +246,11 @@ MEDIA QUERIES
     #content {font-size: .7rem;}
     
     .blogo {
-        width: 4rem;
+        width: 3rem;
         display: inline;
     }
     .header {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
     
     .db-title { font-size: 1.4rem;}
@@ -274,13 +277,12 @@ MEDIA QUERIES
     }
     
     .blogo {
-        width: 3rem;
+        width: 2.75rem;
         margin-left: -2rem;
     }
 
     .header {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.3rem;
     }
     
     .select {
@@ -326,7 +328,7 @@ MEDIA QUERIES
 /* Very small devices */
 @media (max-width: 360px) {
     .header {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -383,7 +385,7 @@ MEDIA QUERIES
     }
 
     .header {
-        font-size: 2.38rem;
+        font-size: 1rem;
     }
 
     .select {
