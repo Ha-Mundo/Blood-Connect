@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: blood-donation-portal
+    env: python
+
+    buildCommand: pip install -r requirements.txt
+
+    startCommand: gunicorn run:app
+
+    plan: free
+
+    envVars:
+      - key: FLASK_ENV
+        value: production
+
+      - key: SECRET_KEY
+        sync: false
+
+      - key: DATABASE_URL
+        sync: false
+
+      - key: MAIL_SERVER
+        value: smtp-relay.brevo.com
+
+      - key: MAIL_PORT
+        value: 587
+
+      - key: MAIL_USE_TLS
+        value: True
+
+      - key: MAIL_USE_SSL
+        value: False
+
+      - key: MAIL_USERNAME
+        sync: false
+
+      - key: MAIL_PASSWORD
+        sync: false
+
+      - key: MAIL_DEFAULT_SENDER_NAME
+        value: Blood Donation Portal
+
+      - key: MAIL_DEFAULT_SENDER_EMAIL
+        sync: false
+
