@@ -2,9 +2,19 @@
 from flask import Flask
 from config import Config
 from app.extensions import db, bcrypt, csrf, login_manager, mail, limiter
+from flask_talisman import Talisman
 from app.models import User
 
 def create_app(config_class=Config):
+    """ Initialize flask talisman """
+    if app.config.get("FLASK_ENV") == "production":
+        Talisman(
+            app,
+            force_https=True,
+            session_cookie_secure=True,
+            content_security_policy=None
+        )
+        
     """ Initialize the core application """
     app = Flask(__name__)
     app.config.from_object(config_class)
