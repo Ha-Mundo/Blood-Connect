@@ -9,9 +9,9 @@ app = create_app()
 
 def seed():
     
-    if os.getenv("FLASK_ENV") == "production":
+    """ if os.getenv("FLASK_ENV") == "production":
         print("Skipping seed in production.")
-        return
+        return """
     
     with app.app_context():
         # Ensure tables exist before seeding
