@@ -6,7 +6,12 @@ from app.extensions import talisman
 from app.models import User
 
 def create_app(config_class=Config):
-    """ Initialize flask talisman """
+        
+    """ Initialize the core application """
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+
+    # Initialize flask talisman 
     if app.config.get("FLASK_ENV") == "production":
         talisman.init_app(
             app,
@@ -15,10 +20,6 @@ def create_app(config_class=Config):
             content_security_policy=None
         )
         
-    """ Initialize the core application """
-    app = Flask(__name__)
-    app.config.from_object(config_class)
-
     # Initialize extensions with the app context
     db.init_app(app)
     bcrypt.init_app(app)
