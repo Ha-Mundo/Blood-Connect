@@ -1,3 +1,4 @@
+import os
 from app import create_app
 from app.extensions import db, bcrypt
 from app.models import User, BloodDonation
@@ -7,6 +8,11 @@ import datetime
 app = create_app()
 
 def seed():
+    
+    if os.getenv("FLASK_ENV") == "production":
+        print("Skipping seed in production.")
+        return
+    
     with app.app_context():
         # Ensure tables exist before seeding
         db.create_all()
