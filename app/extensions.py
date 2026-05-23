@@ -6,10 +6,13 @@ from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_talisman import Talisman
+
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
+talisman = Talisman()
 mail = Mail()
 
 login_manager = LoginManager()
