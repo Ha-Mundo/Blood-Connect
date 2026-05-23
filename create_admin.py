@@ -1,41 +1,50 @@
+import os
+import getpass
 from app import create_app
 from app.extensions import db, bcrypt
 from app.models import User
-import getpass
 
 app = create_app()
 
 def create_admin():
-    """ Script to create an administrative user via terminal """
+    """Dynamic script to create an administrator user (Local or Production)"""
     with app.app_context():
         # 1. DATABASE INITIALIZATION
-        # Ensure tables exist before attempting to insert data
         db.create_all()
 
-        print("--- Create Super User (Admin) ---")
-        username = input("Enter username: ")
-        email = input("Enter email: ") # Required by the User model
-        
+        # Check if we are in production by reading environment variables
+        env_username = os.getenv("ADMIN_USERNAME")
+        env_email = os.getenv("ADMIN_EMAIL")
+        env_password = os.getenv("ADMIN_PASSWORD")
+
+        # If ALL environment variables are present, use automated mode (Production)
+        if env_username and env_email and env_password:
+            print("--- Creating Admin from Environment Variables (Production) ---")
+            username = env_username
+            email = env_email
+            password = env_password
+        else:
+            # Otherwise, switch to interactive mode (Local)
+            print("--- Interactive Super User Creation (Local) ---")
+            username = input("Enter username: ")
+            email = input("Enter email: ")
+            
+            password = getpass.getpass("Enter password: ")
+            confirm_password = getpass.getpass("Confirm password: ")
+
+            if password != confirm_password:
+                print("Error: Passwords do not match.")
+                return
+
         # 2. DUPLICATE CHECK
-        # Verify if the username or email is already taken
         if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
-            print("Error: User with this username or email already exists.")
+            print(f"Notice: User with username '{username}' or email '{email}' already exists. Skipping creation.")
             return
 
-        # 3. SECURE PASSWORD INPUT
-        password = getpass.getpass("Enter password: ")
-        confirm_password = getpass.getpass("Confirm password: ")
-
-        if password != confirm_password:
-            print("Error: Passwords do not match.")
-            return
-
-        # 4. PASSWORD HASHING
-        # Securely hash the password before storage
+        # 3. PASSWORD HASHING
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
         
-        # 5. OBJECT CREATION
-        # Assign 'admin' role to grant elevated permissions
+        # 4. OBJECT CREATION
         new_user = User(
             username=username, 
             email=email.lower(), 
@@ -49,7 +58,6 @@ def create_admin():
             db.session.commit()
             print(f"\nSUCCESS: Admin '{username}' created successfully!")
         except Exception as e:
-            # Rollback in case of database errors
             db.session.rollback()
             print(f"\nDATABASE ERROR: {e}")
 
