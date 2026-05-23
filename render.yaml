@@ -1,13 +1,18 @@
+```yaml
 services:
   - type: web
     name: blood-donation-portal
+
     env: python
+    plan: free
 
     buildCommand: pip install -r requirements.txt
 
-    startCommand: gunicorn run:app
+    releaseCommand: |
+      python create_admin.py
+      python seed_data.py
 
-    plan: free
+    startCommand: gunicorn run:app
 
     envVars:
       - key: FLASK_ENV
@@ -42,4 +47,4 @@ services:
 
       - key: MAIL_DEFAULT_SENDER_EMAIL
         sync: false
-
+```
