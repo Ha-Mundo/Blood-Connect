@@ -2,6 +2,7 @@
 
 import os
 from dotenv import load_dotenv
+from sqlalchemy.pool import NullPool
 
 load_dotenv()
 
@@ -30,9 +31,6 @@ class Config:
                 "postgresql://",
                 1
             )
-            
-        if "sslmode=" not in DATABASE_URL:
-                DATABASE_URL += "?sslmode=require"
 
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
     else:
@@ -40,14 +38,26 @@ class Config:
         SQLALCHEMY_DATABASE_URI = (
             f"sqlite:///{os.path.join(basedir, 'instance', 'BloodDonationPortal.db')}"
         )
+        
+    # ---------------------------------------------------
+    # SQLALCHEMY ENGINE OPTIONS - IMPORTANT FOR NEON + RENDER
+    # ---------------------------------------------------
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "pool_timeout": 30,
+         "connect_args": {
+            "sslmode": "require"
+        }
+    }
 
     # =========================
     # MAIL
     # =========================
     MAIL_SERVER = os.getenv("MAIL_SERVER", "localhost")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 1025))
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
 
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "False") == "True"
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True") == "True"
     MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False") == "True"
 
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")

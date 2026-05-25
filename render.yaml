@@ -11,7 +11,7 @@ services:
       python create_admin.py
       python seed_data.py
 
-    startCommand: gunicorn run:app
+    startCommand: gunicorn --workers 1 --threads 2 run:app
 
     envVars:
       - key: FLASK_ENV
@@ -47,3 +47,11 @@ services:
       - key: MAIL_DEFAULT_SENDER_EMAIL
         sync: false
 
+      - key: ADMIN_USERNAME
+        sync: false
+
+      - key: ADMIN_EMAIL
+        sync: false
+
+      - key: ADMIN_PASSWORD
+        sync: false
