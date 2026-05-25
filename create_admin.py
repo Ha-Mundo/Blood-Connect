@@ -11,6 +11,12 @@ def create_admin():
     with app.app_context():
         # 1. DATABASE INITIALIZATION
         db.create_all()
+        
+        existing_admin = User.query.filter(User.role == "admin", User.is_active == True).first()
+
+        if existing_admin:
+            print("Admin already exists.")
+            return
 
         # Check if we are in production by reading environment variables
         env_username = os.getenv("ADMIN_USERNAME")
@@ -46,7 +52,7 @@ def create_admin():
         
         # 4. OBJECT CREATION
         new_user = User(
-            username=username, 
+            username=username.lower(), 
             email=email.lower(), 
             password=hashed_pw,
             role='admin', 
@@ -60,6 +66,7 @@ def create_admin():
         except Exception as e:
             db.session.rollback()
             print(f"\nDATABASE ERROR: {e}")
+            raise
 
 if __name__ == "__main__":
     create_admin()
