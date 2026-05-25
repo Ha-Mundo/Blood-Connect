@@ -24,11 +24,17 @@ class Config:
 
     if DATABASE_URL:
         # Production (Render + Neon)
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
-            "postgres://",
-            "postgresql://",
-            1
-        )
+        if DATABASE_URL.startswith("postgres://"):
+            SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
+                "postgres://",
+                "postgresql://",
+                1
+            )
+            
+        if "sslmode=" not in DATABASE_URL:
+                DATABASE_URL += "?sslmode=require"
+
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
     else:
         # Local development
         SQLALCHEMY_DATABASE_URI = (
@@ -49,7 +55,7 @@ class Config:
 
     MAIL_DEFAULT_SENDER = (
         os.getenv("MAIL_SENDER_NAME", "Blood Donation Portal"),
-        os.getenv("MAIL_DEFAULT_SENDER", "BDP@mail.com")
+        os.getenv("MAIL_DEFAULT_SENDER", "bdp.notifications@mail.com")
     )
 
     # =========================
