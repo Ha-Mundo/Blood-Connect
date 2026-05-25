@@ -1,8 +1,8 @@
 """ Application factory and initialization """
 from flask import Flask
 from config import Config
-from app.extensions import db, bcrypt, csrf, login_manager, mail, limiter
-from app.extensions import talisman
+from werkzeug.middleware.proxy_fix import ProxyFix
+from app.extensions import db, bcrypt, csrf, login_manager, mail, limiter, talisman
 from app.models import User
 
 def create_app(config_class=Config):
@@ -11,12 +11,16 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     # Initialize flask talisman 
     if app.config.get("FLASK_ENV") == "production":
         talisman.init_app(
             app,
             force_https=True,
+            strict_transport_security=True,
+            strict_transport_security_max_age=31536000,
             session_cookie_secure=True,
+            session_cookie_http_only=True,
             content_security_policy=None
         )
         
