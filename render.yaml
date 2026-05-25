@@ -1,4 +1,3 @@
-```yaml
 services:
   - type: web
     name: blood-donation-portal
@@ -47,4 +46,4 @@ services:
 
       - key: MAIL_DEFAULT_SENDER_EMAIL
         sync: false
-```
+
