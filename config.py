@@ -26,7 +26,7 @@ class Config:
     if DATABASE_URL:
         # Production (Render + Neon)
         if DATABASE_URL.startswith("postgres://"):
-            SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
+            DATABASE_URL = DATABASE_URL.replace(
                 "postgres://",
                 "postgresql://",
                 1
@@ -45,7 +45,7 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 300,
-        "pool_timeout": 30,
+        "poolclass": NullPool,
          "connect_args": {
             "sslmode": "require"
         }
@@ -64,8 +64,8 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 
     MAIL_DEFAULT_SENDER = (
-        os.getenv("MAIL_SENDER_NAME", "Blood Donation Portal"),
-        os.getenv("MAIL_DEFAULT_SENDER", "bdp.notifications@mail.com")
+        os.getenv("MAIL_DEFAULT_SENDER_NAME", "Blood Donation Portal"),
+        os.getenv("MAIL_DEFAULT_SENDER_EMAIL", "no-reply@example.com")
     )
 
     # =========================
