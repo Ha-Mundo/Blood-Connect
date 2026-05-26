@@ -19,7 +19,10 @@ class EmailService:
         )
 
         msg.html = f"<p>Click here: <a href='{confirm_url}'>Confirm Email</a></p>"
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
 
     @staticmethod
     def send_reset_email(user, token):
@@ -31,7 +34,10 @@ class EmailService:
         )
 
         msg.body = f"Reset here: {reset_url}"
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
         
     @staticmethod
     def send_eligibility_notification(user, type_):
@@ -51,7 +57,10 @@ class EmailService:
 
         msg = Message(subject, recipients=[user.email])
         msg.body = body
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
         
     @staticmethod
     def send_donation_claimed_notification(user, donation):
@@ -70,7 +79,10 @@ class EmailService:
 
         msg = Message(subject, recipients=[donation.email])
         msg.body = body
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
         
     @staticmethod
     def send_donation_status_notification(user, donation, status):
@@ -99,7 +111,10 @@ class EmailService:
         if subject:
             msg = Message(subject, recipients=[donation.email])
             msg.body = body
-            mail.send(msg)
+            try:
+                mail.send(msg)
+            except Exception as e:
+                current_app.logger.error(f"Email error: {e}")
 
 
     @staticmethod
@@ -132,7 +147,10 @@ class EmailService:
         if subject:
             msg = Message(subject, recipients=[request.requester_email])
             msg.body = body
-            mail.send(msg)
+            try:
+                mail.send(msg)
+            except Exception as e:
+                current_app.logger.error(f"Email error: {e}")
 
 
     @staticmethod
@@ -151,7 +169,10 @@ class EmailService:
             f"{message}"
         )
 
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
         
     
     @staticmethod
@@ -178,4 +199,7 @@ class EmailService:
 
         msg = Message(subject, recipients=[user.email])
         msg.body = body
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Email error: {e}")
