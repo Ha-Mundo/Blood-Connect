@@ -23,6 +23,7 @@ class EmailService:
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
+            return False
 
     @staticmethod
     def send_reset_email(user, token):
@@ -38,7 +39,8 @@ class EmailService:
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
-        
+            return False
+
     @staticmethod
     def send_eligibility_notification(user, type_):
         if not EmailService._can_send(user):
@@ -61,7 +63,8 @@ class EmailService:
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
-        
+            return False
+
     @staticmethod
     def send_donation_claimed_notification(user, donation):
         if not EmailService._can_send(user):
@@ -83,7 +86,8 @@ class EmailService:
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
-        
+            return False
+
     @staticmethod
     def send_donation_status_notification(user, donation, status):
         if not EmailService._can_send(user):
@@ -115,7 +119,7 @@ class EmailService:
                 mail.send(msg)
             except Exception as e:
                 current_app.logger.error(f"Email error: {e}")
-
+                return False
 
     @staticmethod
     def send_request_status_notification(user, request, status):
@@ -151,6 +155,7 @@ class EmailService:
                 mail.send(msg)
             except Exception as e:
                 current_app.logger.error(f"Email error: {e}")
+                return False
 
 
     @staticmethod
@@ -173,7 +178,7 @@ class EmailService:
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
-        
+            return False
     
     @staticmethod
     def send_thank_you_email(user, name, type_):
@@ -202,4 +207,5 @@ class EmailService:
         try:
             mail.send(msg)
         except Exception as e:
-            current_app.logger.error(f"Email error: {e}")
+            current_app.logger.error(f"Email error: {e}")          
+            return False
