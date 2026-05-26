@@ -17,8 +17,7 @@ def create_app(config_class=Config):
         talisman.init_app(
             app,
             force_https=True,
-            strict_transport_security=True,
-            strict_transport_security_max_age=31536000,
+            force_https_permanent=True,
             session_cookie_secure=True,
             session_cookie_http_only=True,
             content_security_policy=None
