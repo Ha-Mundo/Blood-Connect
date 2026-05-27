@@ -22,6 +22,7 @@ def create_admin():
         env_username = os.getenv("ADMIN_USERNAME")
         env_email = os.getenv("ADMIN_EMAIL")
         env_password = os.getenv("ADMIN_PASSWORD")
+        is_production = os.getenv("FLASK_ENV") == "production"
 
         # If ALL environment variables are present, use automated mode (Production)
         if env_username and env_email and env_password:
@@ -29,6 +30,11 @@ def create_admin():
             username = env_username
             email = env_email
             password = env_password
+        elif is_production:
+            # BLOCK INTERACTIVE PROMPT IN CLOUD
+            print("ERROR: Admin environment variables are missing!")
+            print("Please add ADMIN_USERNAME, ADMIN_EMAIL, and ADMIN_PASSWORD in the Render Dashboard.")
+            return
         else:
             # Otherwise, switch to interactive mode (Local)
             print("--- Interactive Super User Creation (Local) ---")
