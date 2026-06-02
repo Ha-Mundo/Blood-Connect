@@ -50,7 +50,7 @@
               title="{% if current_user.role == 'admin' %}Super User Administrator{% else %}User Settings{% endif %}">
             </a>
 
-              <span class="me-3"><strong>{{ current_user.username }}</strong></span>
+              <span class="me-3"><strong>{{ current_user.username|title }}</strong></span>
             <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
         </div>
         {% endif %}
