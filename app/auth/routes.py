@@ -77,9 +77,14 @@ def register():
             return render_template('register.html', form=form)
 
         token = AuthService.generate_email_token(user.email)
-        EmailService.send_confirmation_email(user, token)
+        email_sent = EmailService.send_confirmation_email(user, token)
 
-        flash("A confirmation email has been sent. Check your inbox.", "info")
+        # Check if the email was successfully dispatched
+        if email_sent:
+            flash("A confirmation email has been sent. Check your inbox.", "info")
+        else:
+            # Inform the user that registration succeeded but the email service is temporarily down
+            flash("Account created, but we couldn't send the confirmation email right now. Please contact support.", "warning")
         return redirect(url_for('auth.login'))
 
     return render_template('register.html', form=form)
@@ -137,6 +142,8 @@ def reset_password_request():
 
         if user and user.is_active:
             token = AuthService.generate_reset_token(user.email)
+            # Execute the email send, but intentionally ignore the boolean result
+            # to prevent exposing database contents (Anti-enumeration mechanism)
             EmailService.send_reset_email(user, token)
 
         # neutral answer (anti-enumeration)
