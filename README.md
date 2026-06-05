@@ -111,7 +111,6 @@ PYTHONPATH=.
 ## Initialize Database
 
 ```bash
-python create_db.py
 python create_admin.py
 python seed_data.py
 ```
@@ -217,14 +216,17 @@ Blood-Donation-Portal/
 
 ### Database
 
-* SQLite
+* SQLite (Local Development)
+* PostgreSQL (Production)
 
-# ⚖️ License
+### Infrastructure & Deployment
 
-This project is licensed under the MIT License.
+* Render - Cloud hosting platform for the web application
+* Neon - Serverless PostgreSQL database for production data
+* Brevo - Transactional email service (SMTP) for automated notifications
 
 
-# 👨‍💻 Author
+# 👨‍💻 Author 
 
 Portfolio project focused on:
 
@@ -233,3 +235,7 @@ Portfolio project focused on:
 * RBAC authorization
 * Web application architecture
 * Security-oriented backend engineering
+
+## ⚖️ License
+
+This project is licensed under the MIT License.
