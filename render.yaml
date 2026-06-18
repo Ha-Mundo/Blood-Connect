@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: blood-donation-portal
+    name: Blood-Connect
 
     env: python
     plan: free
@@ -40,7 +40,7 @@ services:
         sync: false
 
       - key: MAIL_DEFAULT_SENDER_NAME
-        value: Blood Donation Portal
+        value: Blood Connect
 
       - key: MAIL_DEFAULT_SENDER_EMAIL
         sync: false

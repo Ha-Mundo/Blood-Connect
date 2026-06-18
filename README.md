@@ -1,4 +1,4 @@
-# 🩸 Blood Donation Portal
+# 🩸 Blood Connect
 
 A security-focused full-stack web application built with Flask for managing blood donations and blood requests.
 
@@ -86,7 +86,7 @@ pytest
 
 ```bash
 git clone <repository-url>
-cd Blood-Donation-Portal
+cd Blood-Connect
 
 python -m venv .venv
 
@@ -142,7 +142,7 @@ flask --app run.py run
 # 📂 Project Structure
 
 ```tree
-Blood-Donation-Portal/
+Blood-Connect/
 │
 ├── app/
 │   ├── admin/
@@ -178,7 +178,7 @@ Blood-Donation-Portal/
 │   └── time_limit.py
 │
 ├── instance/
-│   └── BloodDonationSystem.db
+│   └── BloodConnect.db
 │   
 ├── tests/
 │   ├── conftest.py

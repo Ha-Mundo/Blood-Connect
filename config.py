@@ -36,7 +36,7 @@ class Config:
     else:
         # Local development
         SQLALCHEMY_DATABASE_URI = (
-            f"sqlite:///{os.path.join(basedir, 'instance', 'BloodDonationPortal.db')}"
+            f"sqlite:///{os.path.join(basedir, 'instance', 'Blood-Connect.db')}"
         )
         
     # ---------------------------------------------------
@@ -65,7 +65,7 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 
     MAIL_DEFAULT_SENDER = (
-        os.getenv("MAIL_DEFAULT_SENDER_NAME", "Blood Donation Portal"),
+        os.getenv("MAIL_DEFAULT_SENDER_NAME", "Blood Connect"),
         os.getenv("MAIL_DEFAULT_SENDER_EMAIL", "no-reply@example.com")
     )
 

@@ -14,18 +14,18 @@ class EmailService:
         confirm_url = url_for('auth.confirm_email', token=token, _external=True)
 
         msg = Message(
-            "Confirm Your Email Address - Blood Donation Portal",
+            "Confirm Your Email Address - Blood Connect",
             recipients=[user.email]
         )
 
         msg.body = f"""
             Hello {user.username},
-            Thank you for registering with the Blood Donation Portal.
+            Thank you for registering with the Blood Connect.
             To activate your account and verify your email address, please visit the following link:
             {confirm_url}
             If you did not create an account, you can safely ignore this email.
             Kind regards,
-            Blood Donation Portal Team
+            The Blood Connect Team
             """
         try:
             mail.send(msg)
@@ -39,19 +39,19 @@ class EmailService:
         reset_url = url_for('auth.reset_token', token=token, _external=True)
 
         msg = Message(
-            "Password Reset Request - Blood Donation Portal",
+            "Password Reset Request - Blood Connect",
             recipients=[user.email]
         )
 
         msg.body = f"""
             Hello {user.username},
-            We received a request to reset the password for your Blood Donation Portal account.
+            We received a request to reset the password for your Blood Connect account.
             To choose a new password, please visit the link below:
             {reset_url}
             If you did not request a password reset, no further action is required and your account remains secure.
             For security reasons, this link may expire after a limited period of time.
             Kind regards,
-            Blood Donation Portal Team
+            The Blood Connect Team
             """
         try:
             mail.send(msg)
@@ -76,7 +76,7 @@ class EmailService:
                 Your continued support plays a vital role in helping patients in need, and we sincerely appreciate your contribution to the community.
                 Thank you for being a blood donor.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         elif type_ == "request":
@@ -86,7 +86,7 @@ class EmailService:
                 We would like to inform you that you are now eligible to submit a new blood request if needed.
                 Should you require assistance, you may access the platform and create a new request at any time.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         msg = Message(subject, recipients=[user.email])
@@ -112,7 +112,7 @@ class EmailService:
             Your willingness to donate can make a meaningful difference in someone's life.
             Thank you for your generosity and support.
             Best regards,
-            The Blood Donation Team
+            The Blood Connect Team
             """
 
         msg = Message(subject, recipients=[donation.email])
@@ -140,7 +140,7 @@ class EmailService:
                 A member of the medical team may contact you if additional information or coordination is required.
                 Thank you for your willingness to help others through blood donation. Your contribution is greatly appreciated.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         elif status == "Unsuccessful":
@@ -151,7 +151,7 @@ class EmailService:
                 There may be several reasons for this outcome. If you would like further information, please contact the relevant donation center or healthcare facility.
                 We sincerely appreciate your willingness to donate and thank you for your support.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         if subject:
@@ -181,7 +181,7 @@ class EmailService:
                 A member of our clinical team will contact you shortly to coordinate the next steps and ensure the process moves forward as smoothly as possible.
                 If you have any questions in the meantime, please do not hesitate to contact us.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
         elif status == "Unsuccessful":
             subject = f"Update on your Blood Request #{request.id} "
@@ -191,7 +191,7 @@ class EmailService:
                 This decision may be related to eligibility requirements, missing information, or other administrative or medical considerations.
                 If you believe additional information may be relevant, please contact the support team for further assistance.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         if subject:
@@ -211,7 +211,7 @@ class EmailService:
             return
         
         msg = Message(
-            "Account Update - Blood Donation Portal",
+            "Account Update - Blood Connect",
             recipients=[user.email],
         )
 
@@ -221,7 +221,7 @@ class EmailService:
             {message}
             If you have any questions regarding this update, please contact the support team.
             Best regards,
-            The Blood Donation Team
+            The Blood Connect Team
             """
 
         try:
@@ -245,7 +245,7 @@ class EmailService:
                 Your generosity and commitment can help save lives and provide critical support to patients in need.
                 We sincerely appreciate your contribution and thank you for being part of our donor community.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         elif type_ == "request":
@@ -256,7 +256,7 @@ class EmailService:
                 We hope the support provided contributes positively to your treatment and recovery.
                 Thank you for using our platform, and we wish you all the best.
                 Best regards,
-                The Blood Donation Team
+                The Blood Connect Team
                 """
 
         msg = Message(subject, recipients=[user.email])
