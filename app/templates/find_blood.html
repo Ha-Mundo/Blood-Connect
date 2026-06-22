@@ -15,8 +15,7 @@
                             <p class="lead mb-1">Status: 
                                 <span class="badge bg-info text-dark">{{ active_request.status.upper() }}</span>
                             </p>
-                            <p class="text-muted">You requested <strong>{{ active_request.blood_groups.upper() }}</strong> blood in <strong>{{ active_request.city|capitalize }}</strong>.</p>
-                            <p class="text-muted mb-2">Donor Contact: <a href="mailto:{{ active_request.donor_email }}">{{ active_request.donor_email }}</a></p>
+                            <p class="text-muted">You requested <strong>{{ active_request.blood_groups.upper() }}</strong> blood in <strong>{{ active_request.city|capitalize }}</strong>.</p>                            
                             <hr>
                             <p class="small text-secondary">Requested on: {{ active_request.request_date.strftime('%d/%m/%Y') }}</p>
                             

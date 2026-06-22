@@ -77,7 +77,17 @@ def blood_request():
         return redirect(url_for('blood_ops.blood_request', city=r_city, bg=r_bg))
 
     if active_request:
-        return render_template('find_blood.html', form=form, active_request=active_request)
+        # Apply least-privilege principle to reduce risk of donor information disclosure
+        request_view = {
+            "id": active_request.id,
+            "status": active_request.status,
+            "blood_groups": active_request.blood_groups,
+            "city": active_request.city,
+            "request_date": active_request.request_date,
+            "name": active_request.name
+        }
+
+        return render_template('find_blood.html', form=form, active_request=request_view)
 
     city = request.args.get('city')
     bg = request.args.get('bg')
