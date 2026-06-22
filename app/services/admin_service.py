@@ -196,6 +196,10 @@ class AdminService:
         if not blood_req:
             return "Request not found.", None
         
+        # Guard clause - block double clicks and reloads
+        if blood_req.status == new_status:
+            return None, blood_req
+        
         user = User.query.filter_by(email=blood_req.requester_email).first()
 
 
@@ -224,6 +228,7 @@ class AdminService:
 
         if new_status == "Completed":
             try: 
+                # Thank requester
                 EmailService.send_thank_you_email(
                     user=user,
                     name=blood_req.name,
@@ -231,6 +236,21 @@ class AdminService:
                 )
             except Exception as e:
                 current_app.logger.error(f"Email error: {e}") 
+                
+            try:
+                # Thank donor
+                donor_user = User.query.filter_by(
+                    email=blood_req.donor_email
+                ).first()
+
+                if donor_user:
+                    EmailService.send_thank_you_email(
+                        user=donor_user,
+                        name=donor_user.username,
+                        type_="donation"
+                    )
+            except Exception as e:
+                current_app.logger.error(f"Donor email error: {e}")
 
         return None, blood_req
 
