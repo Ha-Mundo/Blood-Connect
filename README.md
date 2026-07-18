@@ -1,5 +1,19 @@
 # 🩸 Blood Connect
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-000000?logo=flask)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)
+![Jinja](https://img.shields.io/badge/Jinja2-Templates-B41717?logo=jinja&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Local-003B57?logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-4169E1?logo=postgresql&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-Tested-0A9EDC?logo=pytest&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?logo=render&logoColor=black)
+![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E699)
+![Brevo](https://img.shields.io/badge/Brevo-SMTP-009FE3)
+
+A security-focused full-stack web application built with Flask for managing blood donations and blood requests.
+
 A security-focused full-stack web application built with Flask for managing blood donations and blood requests.
 
 The platform allows users to submit donation and request operations while administrators validate and manage the complete workflow through a dedicated admin dashboard.
