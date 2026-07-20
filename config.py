@@ -21,7 +21,7 @@ class Config:
     # =========================
     # DATABASE
     # =========================
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
     if DATABASE_URL:
         # Production (Render + Neon)
@@ -36,21 +36,22 @@ class Config:
     else:
         # Local development
         SQLALCHEMY_DATABASE_URI = (
-            f"sqlite:///{os.path.join(basedir, 'instance', 'Blood-Connect.db')}"
+            f"sqlite:///{os.path.join(basedir, 'instance', 'blood_connect.db')}"
         )
         
-    # ---------------------------------------------------
-    # SQLALCHEMY ENGINE OPTIONS - IMPORTANT FOR NEON + RENDER
-    # ---------------------------------------------------
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_recycle": 300,
-        "poolclass": NullPool,
-         "connect_args": {
-            "sslmode": "require"
+    if DATABASE_URL and DATABASE_URL.startswith("postgres"):
+        # SQLALCHEMY ENGINE OPTIONS - IMPORTANT FOR NEON + RENDER
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+            "poolclass": NullPool,
+            "connect_args": {
+                "sslmode": "require"
+            }
         }
-    }
-
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {}
+    
     # =========================
     # MAIL
     # =========================
@@ -82,4 +83,4 @@ class Config:
     # Enable only in production HTTPS
     SESSION_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
     REMEMBER_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
-
+    
