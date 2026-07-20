@@ -31,14 +31,41 @@ The platform allows users to submit donation and request operations while admini
 * Personal statistics dashboard
 * Profile management
 
+#### User Interface
+
+> 📷 _Authentication page_ 
+![Authentication page](/app/static/screenshots/authentication_page.png)
+
+> 📷 _User dashboard_
+![User dashboard](/app/static/screenshots/user_dashboard.png)
+
+> 📷 _User donation/request page_
+![User donation page](/app/static/screenshots/user_donation_page.png)
+![User request page](/app/static/screenshots/user_request_page.png)
+
+> 📷 _User Settings_
+![User settings](/app/static/screenshots/user_settings.png)
+
 ### 👑 Admin Features
 
+* Administrative analytics dashboard
 * Donation/request approval workflow
 * User ban/reactivation system
 * CSV export tools
 * Database cleanup utilities
-* Administrative analytics dashboard
 
+#### Admin Interface
+
+> 📷 _Admin dashboard_
+![Admin dashboard](/app/static/screenshots/admin_dashboard.png)
+
+> 📷 _Operations management_
+![Donation management](/app/static/screenshots/donation_management.png)
+![Request management](/app/static/screenshots/request_management.png)
+![User management](/app/static/screenshots/user_management.png)
+
+> 📷 _Admin settings_
+![Admin settings](/app/static/screenshots/admin_settings.png)
 
 # 🔄 Core Workflow
 
@@ -129,23 +156,51 @@ python create_admin.py
 python seed_data.py
 ```
 
-## Start Mailpit
+## Start Mailpit (Local Email Testing)
+
+The application uses Mailpit during local development to capture and inspect outgoing emails without sending them to real recipients.
+
+1. Download the appropriate Mailpit release for your operating system from the official website:
+   https://mailpit.axllent.org/
+
+2. Extract the downloaded archive.
+
+3. Open a terminal inside the extracted folder and start Mailpit:
 
 ```bash
-mailpit
+./mailpit
 ```
 
-SMTP:
+Windows:
+
+```bash
+.\mailpit.exe
+```
+
+Once started, Mailpit exposes:
+
+**SMTP Server**
 
 ```text
 localhost:1025
 ```
 
-Web UI:
+Used by the Flask application to send emails locally.
+
+**Web Interface**
 
 ```text
 http://localhost:8025
 ```
+
+Used to view captured emails such as:
+
+* Account verification emails
+* Password reset emails
+* Donation and request notifications
+* Thank-you emails
+
+Keep Mailpit running while testing email-related features locally.
 
 ## Run Application
 
